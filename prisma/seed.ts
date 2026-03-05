@@ -1,4 +1,4 @@
-import { PrismaClient, Role, OrderStatus, Priority } from "@prisma/client";
+import { PrismaClient, Role, OrderStatus, Priority, ProductType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -13,6 +13,9 @@ async function main() {
   await prisma.orderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
   await prisma.parLevel.deleteMany().catch(() => {});
+  await prisma.product.deleteMany();
+  await prisma.vendor.deleteMany();
+  await prisma.category.deleteMany();
   console.log("✓ Cleaned existing seed data");
 
   // ── Locations ──────────────────────────────────────
@@ -46,42 +49,36 @@ async function main() {
   );
   console.log(`✓ ${locations.length} locations seeded`);
 
-  // ── Vendors ────────────────────────────────────────
+  // ── Vendors (28 real vendors from Product Centers workbook) ──
   const vendorData = [
-    { name: "ADW", code: "ADW", paymentTerms: "Net 30" },
-    { name: "Airgas", code: "AIRGAS", paymentTerms: "Net 30" },
-    { name: "Alastin Skincare", code: "ALASTIN", paymentTerms: "Net 30" },
-    { name: "Allergan Aesthetics", code: "ALLERGAN", paymentTerms: "Net 30" },
-    { name: "Advantage", code: "ADVANTAGE", paymentTerms: "Net 30" },
-    { name: "Allergan Direct", code: "ALLERGAN-D", paymentTerms: "Net 30" },
-    { name: "Candela", code: "CANDELA", paymentTerms: "Net 30" },
-    { name: "Clear & Brilliant (Solta/Bausch)", code: "CLEAR-BRILLIANT", paymentTerms: "Net 30" },
+    { name: "Alastin", code: "ALASTIN", paymentTerms: "Net 30" },
+    { name: "Allergan", code: "ALLERGAN", paymentTerms: "Net 30" },
+    { name: "ariessence", code: "ARIESSENCE", paymentTerms: "Net 30" },
+    { name: "Bellus Medical", code: "BELLUS", paymentTerms: "Net 30" },
+    { name: "BENEV", code: "BENEV", paymentTerms: "Net 30" },
+    { name: "Circē", code: "CIRCE", paymentTerms: "Net 30" },
+    { name: "Clear+Brilliant (Solta)", code: "CLEAR-BRILLIANT", paymentTerms: "Net 30" },
     { name: "CosmoFrance", code: "COSMOFRANCE", paymentTerms: "Net 30" },
-    { name: "Delasco", code: "DELASCO", paymentTerms: "Net 30" },
-    { name: "Esthemax", code: "ESTHEMAX", paymentTerms: "Net 30" },
+    { name: "Cynosure", code: "CYNOSURE", paymentTerms: "Net 30" },
+    { name: "ELEVAI Labs", code: "ELEVAI", paymentTerms: "Net 30" },
+    { name: "Elta MD", code: "ELTAMD", paymentTerms: "Net 30" },
     { name: "Galderma", code: "GALDERMA", paymentTerms: "Net 30" },
-    { name: "HydraFacial", code: "HYDRAFACIAL", paymentTerms: "Net 30" },
+    { name: "Hydrafacial", code: "HYDRAFACIAL", paymentTerms: "Net 30" },
     { name: "InMode", code: "INMODE", paymentTerms: "Net 30" },
-    { name: "Kentek (C+B Goggles)", code: "KENTEK", paymentTerms: "Net 30" },
-    { name: "Lutronic", code: "LUTRONIC", paymentTerms: "Net 30" },
-    { name: "McKesson", code: "MCKESSON", paymentTerms: "Net 30" },
-    { name: "Medline", code: "MEDLINE", paymentTerms: "Net 30" },
-    { name: "Melio", code: "MELIO", paymentTerms: "Net 30" },
+    { name: "Innovation Aesthetics", code: "INNOVATION", paymentTerms: "Net 30" },
+    { name: "Integrity", code: "INTEGRITY", paymentTerms: "Net 30" },
+    { name: "JuveXO", code: "JUVEXO", paymentTerms: "Net 30" },
+    { name: "MINT PDO Threads", code: "MINT", paymentTerms: "Net 30" },
     { name: "Merz Aesthetics", code: "MERZ", paymentTerms: "Net 30" },
-    { name: "MINT Threads", code: "MINT", paymentTerms: "Net 30" },
-    { name: "Nitrile Gloves", code: "NITRILE", paymentTerms: "Net 30" },
-    { name: "ODP (Office Depot)", code: "ODP", paymentTerms: "Net 30" },
-    { name: "Olympia Pharmacy", code: "OLYMPIA", paymentTerms: "Net 30" },
-    { name: "Plasma Pen (Plasma Concepts)", code: "PLASMA-PEN", paymentTerms: "Net 30" },
-    { name: "Precise", code: "PRECISE", paymentTerms: "Net 30" },
+    { name: "Pavise", code: "PAVISE", paymentTerms: "Net 30" },
+    { name: "Regen Labs", code: "REGENLABS", paymentTerms: "Net 30" },
+    { name: "Rejuran", code: "REJURAN", paymentTerms: "Net 30" },
+    { name: "Revance", code: "REVANCE", paymentTerms: "Net 30" },
     { name: "Sciton", code: "SCITON", paymentTerms: "Net 30" },
-    { name: "Shippo", code: "SHIPPO", paymentTerms: "Net 30" },
-    { name: "SkinBetter Science", code: "SKINBETTER", paymentTerms: "Net 30" },
-    { name: "Softfil", code: "SOFTFIL", paymentTerms: "Net 30" },
-    { name: "The Container Store", code: "CONTAINER-STORE", paymentTerms: "Net 30" },
-    { name: "TTC", code: "TTC", paymentTerms: "Net 30" },
-    { name: "USA", code: "USA", paymentTerms: "Net 30" },
+    { name: "SkinMedica", code: "SKINMEDICA", paymentTerms: "Net 30" },
+    { name: "Skinbetter Science", code: "SKINBETTER", paymentTerms: "Net 30" },
     { name: "Vitality Institute", code: "VITALITY", paymentTerms: "Net 30" },
+    { name: "Xtressé", code: "XTRESSE", paymentTerms: "Net 30" },
   ];
 
   const vendors = await Promise.all(
@@ -95,16 +92,12 @@ async function main() {
   );
   console.log(`✓ ${vendors.length} vendors seeded`);
 
-  // ── Categories ─────────────────────────────────────
+  // ── Categories (4 real categories) ─────────────────
   const categoryData = [
-    { name: "Medical Injectables", description: "Botox, fillers, Dysport, Kybella, threads" },
-    { name: "Medical Supplies", description: "Needles, syringes, gauze, gloves, sharps containers" },
-    { name: "Skincare & Retail", description: "Retail skincare products, serums, sunscreen" },
-    { name: "Equipment & Devices", description: "Lasers, RF devices, treatment machines, goggles" },
-    { name: "Facials & Treatments", description: "HydraFacial tips, peels, masks, treatment supplies" },
-    { name: "Office & Facility", description: "Office supplies, cleaning, furniture, storage" },
-    { name: "Pharmacy & Compounds", description: "Compounded topicals, numbing cream, medications" },
-    { name: "Shipping & Packaging", description: "Shipping labels, boxes, packaging materials" },
+    { name: "Services", description: "Treatments and consumable procedure supplies" },
+    { name: "Facial Care", description: "Retail skincare products" },
+    { name: "Backbar", description: "Professional-size products used during treatments" },
+    { name: "Wellness", description: "Wellness products" },
   ];
 
   const categories = await Promise.all(
@@ -118,91 +111,227 @@ async function main() {
   );
   console.log(`✓ ${categories.length} categories seeded`);
 
-  // Helper to find vendor/category by code/name
-  const v = (code: string) => vendors.find((x) => x.code === code)!;
-  const c = (name: string) => categories.find((x) => x.name === name)!;
+  // Helpers
+  const v = (name: string) => vendors.find((x) => x.name === name)!;
+  const cat = (name: string) => categories.find((x) => x.name === name)!;
 
-  // ── Products ───────────────────────────────────────
-  const productData = [
-    // Medical Injectables
-    { name: "Botox 100U", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 396, unitOfMeasure: "vial" },
-    { name: "Botox 200U", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 792, unitOfMeasure: "vial" },
-    { name: "Juvederm Ultra XC", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 270, unitOfMeasure: "syringe" },
-    { name: "Juvederm Voluma XC", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 320, unitOfMeasure: "syringe" },
-    { name: "Juvederm Volbella XC", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 270, unitOfMeasure: "syringe" },
-    { name: "Dysport 300U", vendorCode: "GALDERMA", category: "Medical Injectables", unitPrice: 460, unitOfMeasure: "vial" },
-    { name: "Restylane", vendorCode: "GALDERMA", category: "Medical Injectables", unitPrice: 245, unitOfMeasure: "syringe" },
-    { name: "Restylane Lyft", vendorCode: "GALDERMA", category: "Medical Injectables", unitPrice: 290, unitOfMeasure: "syringe" },
-    { name: "Sculptra", vendorCode: "GALDERMA", category: "Medical Injectables", unitPrice: 350, unitOfMeasure: "vial" },
-    { name: "Kybella", vendorCode: "ALLERGAN", category: "Medical Injectables", unitPrice: 590, unitOfMeasure: "vial" },
-    { name: "Xeomin 100U", vendorCode: "MERZ", category: "Medical Injectables", unitPrice: 380, unitOfMeasure: "vial" },
-    { name: "Radiesse", vendorCode: "MERZ", category: "Medical Injectables", unitPrice: 260, unitOfMeasure: "syringe" },
-    { name: "MINT PDO Threads (10pk)", vendorCode: "MINT", category: "Medical Injectables", unitPrice: 180, unitOfMeasure: "pack" },
-    { name: "Softfil Cannulas (20pk)", vendorCode: "SOFTFIL", category: "Medical Injectables", unitPrice: 95, unitOfMeasure: "box" },
-
-    // Medical Supplies
-    { name: "Nitrile Gloves - Small (100ct)", vendorCode: "NITRILE", category: "Medical Supplies", unitPrice: 12, unitOfMeasure: "box" },
-    { name: "Nitrile Gloves - Medium (100ct)", vendorCode: "NITRILE", category: "Medical Supplies", unitPrice: 12, unitOfMeasure: "box" },
-    { name: "Nitrile Gloves - Large (100ct)", vendorCode: "NITRILE", category: "Medical Supplies", unitPrice: 12, unitOfMeasure: "box" },
-    { name: "Alcohol Prep Pads (200ct)", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 8, unitOfMeasure: "box" },
-    { name: "Gauze Pads 4x4 (200ct)", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 15, unitOfMeasure: "box" },
-    { name: "Sharps Container 2 Gallon", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 12, unitOfMeasure: "each" },
-    { name: "BD Syringes 1mL (100ct)", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 28, unitOfMeasure: "box" },
-    { name: "Needles 30G 1/2\" (100ct)", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 18, unitOfMeasure: "box" },
-    { name: "Needles 32G 4mm (100ct)", vendorCode: "MCKESSON", category: "Medical Supplies", unitPrice: 22, unitOfMeasure: "box" },
-    { name: "Tegaderm Film Dressings (100ct)", vendorCode: "MEDLINE", category: "Medical Supplies", unitPrice: 35, unitOfMeasure: "box" },
-    { name: "Ice Packs Instant (24ct)", vendorCode: "MEDLINE", category: "Medical Supplies", unitPrice: 18, unitOfMeasure: "case" },
-
-    // Skincare & Retail
-    { name: "Alastin Regenerating Skin Nectar", vendorCode: "ALASTIN", category: "Skincare & Retail", unitPrice: 115, unitOfMeasure: "each" },
-    { name: "Alastin Restorative Eye Treatment", vendorCode: "ALASTIN", category: "Skincare & Retail", unitPrice: 85, unitOfMeasure: "each" },
-    { name: "Alastin INhance Post-Injection Serum", vendorCode: "ALASTIN", category: "Skincare & Retail", unitPrice: 56, unitOfMeasure: "each" },
-    { name: "SkinBetter AlphaRet Overnight Cream", vendorCode: "SKINBETTER", category: "Skincare & Retail", unitPrice: 88, unitOfMeasure: "each" },
-    { name: "SkinBetter Even Tone Correcting Serum", vendorCode: "SKINBETTER", category: "Skincare & Retail", unitPrice: 95, unitOfMeasure: "each" },
-    { name: "VI Peel Original", vendorCode: "VITALITY", category: "Skincare & Retail", unitPrice: 48, unitOfMeasure: "each" },
-    { name: "VI Peel Precision Plus", vendorCode: "VITALITY", category: "Skincare & Retail", unitPrice: 65, unitOfMeasure: "each" },
-
-    // Equipment & Devices
-    { name: "C+B Laser Safety Goggles", vendorCode: "KENTEK", category: "Equipment & Devices", unitPrice: 175, unitOfMeasure: "pair" },
-    { name: "Sciton BBL Handpiece Filter", vendorCode: "SCITON", category: "Equipment & Devices", unitPrice: 850, unitOfMeasure: "each" },
-    { name: "Morpheus8 Tips (25pk)", vendorCode: "INMODE", category: "Equipment & Devices", unitPrice: 1250, unitOfMeasure: "box" },
-    { name: "Plasma Pen Tips Fine (10pk)", vendorCode: "PLASMA-PEN", category: "Equipment & Devices", unitPrice: 120, unitOfMeasure: "pack" },
-    { name: "Clear & Brilliant Handpiece Tip", vendorCode: "CLEAR-BRILLIANT", category: "Equipment & Devices", unitPrice: 495, unitOfMeasure: "each" },
-
-    // Facials & Treatments
-    { name: "HydraFacial Hydra-Medic Tips (10pk)", vendorCode: "HYDRAFACIAL", category: "Facials & Treatments", unitPrice: 350, unitOfMeasure: "box" },
-    { name: "HydraFacial Activ-4 Serum 60mL", vendorCode: "HYDRAFACIAL", category: "Facials & Treatments", unitPrice: 42, unitOfMeasure: "bottle" },
-    { name: "HydraFacial Growth Factor Boost", vendorCode: "HYDRAFACIAL", category: "Facials & Treatments", unitPrice: 28, unitOfMeasure: "each" },
-    { name: "Esthemax Hydrojelly Mask - Collagen", vendorCode: "ESTHEMAX", category: "Facials & Treatments", unitPrice: 8, unitOfMeasure: "each" },
-    { name: "Esthemax Hydrojelly Mask - Vitamin C", vendorCode: "ESTHEMAX", category: "Facials & Treatments", unitPrice: 8, unitOfMeasure: "each" },
-    { name: "CosmoFrance Microcurrent Gel 250mL", vendorCode: "COSMOFRANCE", category: "Facials & Treatments", unitPrice: 32, unitOfMeasure: "bottle" },
-
-    // Office & Facility
-    { name: "Copy Paper (10 ream case)", vendorCode: "ODP", category: "Office & Facility", unitPrice: 45, unitOfMeasure: "case" },
-    { name: "Facial Tissue Boxes (36ct)", vendorCode: "ODP", category: "Office & Facility", unitPrice: 38, unitOfMeasure: "case" },
-    { name: "Hand Sanitizer 8oz (12ct)", vendorCode: "ODP", category: "Office & Facility", unitPrice: 32, unitOfMeasure: "case" },
-    { name: "Storage Bins - Clear (6pk)", vendorCode: "CONTAINER-STORE", category: "Office & Facility", unitPrice: 48, unitOfMeasure: "pack" },
-
-    // Pharmacy & Compounds
-    { name: "BLT Numbing Cream 30g", vendorCode: "OLYMPIA", category: "Pharmacy & Compounds", unitPrice: 22, unitOfMeasure: "tube" },
-    { name: "BLT Numbing Cream 60g", vendorCode: "OLYMPIA", category: "Pharmacy & Compounds", unitPrice: 38, unitOfMeasure: "tube" },
-    { name: "Arnica Topical Cream 60g", vendorCode: "OLYMPIA", category: "Pharmacy & Compounds", unitPrice: 18, unitOfMeasure: "tube" },
-
-    // Shipping
-    { name: "Shipping Labels 4x6 (500ct)", vendorCode: "SHIPPO", category: "Shipping & Packaging", unitPrice: 25, unitOfMeasure: "roll" },
+  // ── Products (185 real products from Product Centers workbook) ──
+  const productData: {
+    name: string;
+    vendor: string | null;
+    category: string;
+    sub: string;
+    type: ProductType;
+    price: number;
+    uom: string;
+    sku?: string;
+  }[] = [
+    { name: "Activ-4 Skin Solution, 8 oz. bottle", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "70137" },
+    { name: "AHA/BHA Exfoliating Cleanser", vendor: "SkinMedica", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 48, uom: "each", sku: "300234945062" },
+    { name: "AlphaRet Clearing Serum 30ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 145, uom: "each", sku: "111100000014" },
+    { name: "AlphaRet Exfoliating Peel Pads", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 125, uom: "each", sku: "858970006351" },
+    { name: "AlphaRet Overnight Cream 30ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 145, uom: "each", sku: "865800000250" },
+    { name: "AlphaRet Professional Peel System 30", vendor: "Skinbetter Science", category: "Services", sub: "Peels", type: ProductType.BOTH, price: 0, uom: "each", sku: "SB5505" },
+    { name: "Alto Advanced Defense and Repair Serum 30ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 195, uom: "each", sku: "111100000045" },
+    { name: "Alto Defense Serum 30ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 170, uom: "each", sku: "858970006092" },
+    { name: "A-Luminate Brightening Serum", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 198, uom: "each", sku: "111100000090" },
+    { name: "Ampra Volumizing Macro HA Serum", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 180, uom: "each", sku: "111100000173" },
+    { name: "Antiox + Skin Solution, 8 oz. bottle", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "70353" },
+    { name: "ariessence PDGF", vendor: "ariessence", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000148" },
+    { name: "A-Team Duo Kit", vendor: "Skinbetter Science", category: "Facial Care", sub: "Skin Care Systems", type: ProductType.RETAIL, price: 185, uom: "each", sku: "858970006214" },
+    { name: "BACKBAR - AlphaRet Overnight Cream 50ML", vendor: "Skinbetter Science", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000079" },
+    { name: "BACKBAR - Alto Advanced Defense and Repair Serum 50ML", vendor: "Skinbetter Science", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000080" },
+    { name: "BACKBAR - Calming Masque 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000070" },
+    { name: "BACKBAR - Cleansing Gel 16oz", vendor: "Skinbetter Science", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000081" },
+    { name: "BACKBAR - Essential Defense Mineral Shield SPF 32 8 oz, tinted", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000071" },
+    { name: "BACKBAR - Essential Defense Mineral Shield SPF 35 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000072" },
+    { name: "BACKBAR - Facial Cleanser 16 fl oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000073" },
+    { name: "BACKBAR - HA5 Hydra Collagen 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000074" },
+    { name: "BACKBAR - Instant Bright Eye Mask", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 75, uom: "each", sku: "111100000029" },
+    { name: "BACKBAR - Purifying Masque 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000075" },
+    { name: "BACKBAR - Regenerating Skin Nectar", vendor: "Alastin", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000087" },
+    { name: "BACKBAR - sunbetter TONE SMART SPF 75 Sunscreen Lotion 8oz", vendor: "Skinbetter Science", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000085" },
+    { name: "BACKBAR - TNS Ceramide Treatment Cream 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000076" },
+    { name: "BACKBAR - TNS Hydrating Masque 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000077" },
+    { name: "BACKBAR - Ultra Sheer Moisturizer 8 oz", vendor: "SkinMedica", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000078" },
+    { name: "BACKBAR HA - Immerse Serum", vendor: "Alastin", category: "Backbar", sub: "Backbar Products", type: ProductType.BOTH, price: 0, uom: "each", sku: "111100000099" },
+    { name: "BENEV Exosomes", vendor: "Innovation Aesthetics", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000104" },
+    { name: "Beta-HD Clear Skin Solution, 8 oz. bottle", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 10", sku: "70406" },
+    { name: "Bioadaptive Stress Repair", vendor: "Pavise", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 198, uom: "each", sku: "111100000147" },
+    { name: "Bioadaptive Stress Repair REFILL", vendor: "Pavise", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 178, uom: "each", sku: "BSRREFILL" },
+    { name: "Botox", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 13.5, uom: "each", sku: "92326" },
+    { name: "Britenol (6 vials/box)", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 6", sku: "70367" },
+    { name: "C&B Original", vendor: "Clear+Brilliant (Solta)", category: "Services", sub: "Laser", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000057" },
+    { name: "C&B Original SAMPLE - 12 Units", vendor: "Clear+Brilliant (Solta)", category: "Services", sub: "Laser", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000140" },
+    { name: "C&B Permea", vendor: "Clear+Brilliant (Solta)", category: "Services", sub: "Laser", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000058" },
+    { name: "C&B Touch", vendor: "Clear+Brilliant (Solta)", category: "Services", sub: "Laser", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000059" },
+    { name: "Cleansing Gel", vendor: "Skinbetter Science", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 50, uom: "each", sku: "111100000012" },
+    { name: "CoolSculpt Elite", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000043" },
+    { name: "Coolsculpting Advantage", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 600, uom: "each", sku: "BRZ-RP1-160-024" },
+    { name: "Coolsculpting Advantage Plus", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 1200, uom: "each", sku: "BRZ-RP1-180-016" },
+    { name: "Coolsculpting Mini", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 750, uom: "each", sku: "BRZ-RP1-02X-024" },
+    { name: "Coolsculpting Petite", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 600, uom: "each", sku: "BRZ-RP1-140-024" },
+    { name: "Coolsculpting Smooth", vendor: "Allergan", category: "Services", sub: "Coolsculpting", type: ProductType.CONSUMABLE, price: 600, uom: "each", sku: "BRZ-RP1-091-024" },
+    { name: "Cosmo France PRF Tube", vendor: "CosmoFrance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000130" },
+    { name: "C-Radical Defense", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 218, uom: "each", sku: "111100000120" },
+    { name: "C-Radical Defense SAMPLE", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 178, uom: "pack of 6", sku: "111100000138" },
+    { name: "DermaBuilder (6 vials/box)", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 6", sku: "70276" },
+    { name: "Detoxifying Scrub Mask", vendor: "Skinbetter Science", category: "Facial Care", sub: "Mask", type: ProductType.RETAIL, price: 60, uom: "each", sku: "865800000205" },
+    { name: "Dynamic Age Defense", vendor: "Pavise", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 130, uom: "each", sku: "111100000145" },
+    { name: "Dynamic Age Defense REFILL", vendor: "Pavise", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 110, uom: "each", sku: "DADREFILL" },
+    { name: "Dysport", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 4, uom: "each", sku: "5005281" },
+    { name: "Empower Exosomes", vendor: "ELEVAI Labs", category: "Services", sub: "Add Ons", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000128" },
+    { name: "Enfinity Daily Regenerative Serum", vendor: "ELEVAI Labs", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 299, uom: "each", sku: "111100000129" },
+    { name: "Essential Defense Mineral Shield SPF 32 Tinted", vendor: "SkinMedica", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 40, uom: "each", sku: "95675" },
+    { name: "Essential Defense Mineral Shield SPF 35", vendor: "SkinMedica", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 40, uom: "each", sku: "300235703173" },
+    { name: "Even Tone Correcting Serum 50ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 165, uom: "each", sku: "858970006252" },
+    { name: "EyeMax AlphaRet Overnight Cream", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 130, uom: "each", sku: "SB5128" },
+    { name: "EZ Gel Kit", vendor: "CosmoFrance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000100" },
+    { name: "Facial Cleanser", vendor: "SkinMedica", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 40, uom: "each", sku: "300234944065" },
+    { name: "Fusion Tip CP-21", vendor: "Cynosure", category: "Services", sub: "Morpheus8", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000125" },
+    { name: "Gentle Amino Powerwash", vendor: "Pavise", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 56, uom: "each", sku: "111100000146" },
+    { name: "Gentle Cleanser", vendor: "Alastin", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 58, uom: "each", sku: "111100000126" },
+    { name: "GlySal Peel 15%, (6 vials/box)", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 6", sku: "7000068" },
+    { name: "GlySal Peel 30% (6 vials/box)", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 6", sku: "7000069" },
+    { name: "GlySal Prep, (6 vials/box)", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 6", sku: "70200" },
+    { name: "HA Immerse Serum", vendor: "Alastin", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 134, uom: "each", sku: "111100000098" },
+    { name: "HA5 Hydra Collagen Replenish + Restore Hydrator", vendor: "SkinMedica", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 192, uom: "each", sku: "111100000136" },
+    { name: "HA5 Rejuvenating Hydrator 2oz", vendor: "SkinMedica", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 184, uom: "each", sku: "300235603022" },
+    { name: "Healing Essence", vendor: "Rejuran", category: "Services", sub: "Add Ons", type: ProductType.CONSUMABLE, price: 399, uom: "each", sku: "111100000170" },
+    { name: "HydraRet A", vendor: "Circē", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 125, uom: "each", sku: "111100000163" },
+    { name: "Hydrating Boosting Cream", vendor: "Skinbetter Science", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 100, uom: "each", sku: "SB5404" },
+    { name: "HydraTint Pro Mineral SPF 36", vendor: "Alastin", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 84, uom: "each", sku: "111100000094" },
+    { name: "Hydropeel Tip, Blue 15-Pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "74112-15" },
+    { name: "Hydropeel Tip, Body 15-pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "70218" },
+    { name: "Hydropeel Tip, Clear 15-Pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "74111-15" },
+    { name: "Hydropeel Tip, Orange Aggression 15-Pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "74275-15" },
+    { name: "Hydropeel Tip, Purple Aggression 15-Pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "74462-15" },
+    { name: "Hydropeel Tip, Teal 15-Pack", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "74114-15" },
+    { name: "Hylenex", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 1.5, uom: "each", sku: "Hylenex100" },
+    { name: "I-25 Insulated Needle", vendor: "Cynosure", category: "Services", sub: "Potenza", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000111" },
+    { name: "I-49 Insulated Needle", vendor: "Cynosure", category: "Services", sub: "Potenza", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000112" },
+    { name: "Illuminize Peel", vendor: "SkinMedica", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 150, uom: "each", sku: "94943" },
+    { name: "INhance Post-Injection Serum", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 72, uom: "each", sku: "111100000089" },
+    { name: "Instant Eye Gel", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 110, uom: "each", sku: "SB5204" },
+    { name: "Integrity PRF Tube", vendor: "Integrity", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000046" },
+    { name: "Integrity PRP Tube", vendor: "Integrity", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000048" },
+    { name: "Intensive AlphaRet Overnight Cream 30ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 145, uom: "each", sku: "858970006306" },
+    { name: "InterFuse Intensive Treatment 15ML LINES", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 145, uom: "each", sku: "865800000229" },
+    { name: "InterFuse Treatment Cream 30ML FACE & NECK", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 140, uom: "each", sku: "SB5001" },
+    { name: "InterFuse Treatment Cream EYE", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 125, uom: "each", sku: "SB5008" },
+    { name: "Juvederm Ultra Plus", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 70, uom: "each", sku: "94155" },
+    { name: "Juvederm Ultra XC", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 70, uom: "each", sku: "94154" },
+    { name: "Juvederm Volbella", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 78, uom: "each", sku: "96181" },
+    { name: "Juvederm Vollure", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 75, uom: "each", sku: "95661" },
+    { name: "Juvederm Voluma", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 78, uom: "each", sku: "94640" },
+    { name: "Juvederm Volux", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 850, uom: "each", sku: "111100000092" },
+    { name: "JuveXO Exosomes", vendor: "JuveXO", category: "Services", sub: "Add Ons", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000161" },
+    { name: "Kybella", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "95706" },
+    { name: "Letybo", vendor: "BENEV", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 13.5, uom: "each", sku: "111100000150" },
+    { name: "MINT Fine", vendor: "MINT PDO Threads", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000051" },
+    { name: "MINT Fix", vendor: "MINT PDO Threads", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000052" },
+    { name: "MINT Mono 25 G", vendor: "MINT PDO Threads", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000049" },
+    { name: "MINT Mono 30 G", vendor: "MINT PDO Threads", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000056" },
+    { name: "MINT Petit", vendor: "MINT PDO Threads", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000050" },
+    { name: "Morpheus8 24 Pin Tip", vendor: "InMode", category: "Services", sub: "Morpheus8", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "AG607563A" },
+    { name: "Morpheus8 Body 40 Pin Tip", vendor: "InMode", category: "Services", sub: "Morpheus8", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "AG609135A" },
+    { name: "Morpheus8 Prime 12 Pin Tip", vendor: "InMode", category: "Services", sub: "Morpheus8", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "AG609136A" },
+    { name: "Morpheus8 Resurfacing Tips", vendor: "InMode", category: "Services", sub: "Morpheus8", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "AG608575A" },
+    { name: "Moxi Tip", vendor: "Sciton", category: "Services", sub: "Laser", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000127" },
+    { name: "Mystro Active Balance Serum 30 ml", vendor: "Skinbetter Science", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 225, uom: "each", sku: "111100000103" },
+    { name: "OptiCide3 Disinfecting", vendor: "Allergan", category: "Services", sub: "Diamond Glow", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000115" },
+    { name: "Oxygen Infusion Wash", vendor: "Skinbetter Science", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 42, uom: "pack of 18", sku: "858970006160" },
+    { name: "Phytofacials", vendor: "Circē", category: "Services", sub: "Add Ons", type: ProductType.RETAIL, price: 48, uom: "each", sku: "111100000164" },
+    { name: "Pore Clarifying Pro Infusion Serum", vendor: "SkinMedica", category: "Services", sub: "Diamond Glow", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000105" },
+    { name: "Precision Eye Lift", vendor: "Pavise", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 112, uom: "each", sku: "111100000156" },
+    { name: "Procedure Enhancement System", vendor: "Alastin", category: "Facial Care", sub: "Skin Care Systems", type: ProductType.RETAIL, price: 306, uom: "each", sku: "111100000088" },
+    { name: "Radiesse Classic", vendor: "Merz Aesthetics", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000102" },
+    { name: "Refining Foam Cleanser", vendor: "Skinbetter Science", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 48, uom: "each", sku: "111100000119" },
+    { name: "Regenerating Skin Nectar", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 258, uom: "each", sku: "111100000093" },
+    { name: "RegenLab PRP Tube", vendor: "Regen Labs", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000005" },
+    { name: "Rejuvenative Moisturizer", vendor: "SkinMedica", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 60, uom: "each", sku: "300234955023" },
+    { name: "Rejuvenize Peel", vendor: "SkinMedica", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 200, uom: "each", sku: "94941" },
+    { name: "Renewal Retinol .25", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 81, uom: "each", sku: "111100000121" },
+    { name: "Renewal Retinol .5", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 81, uom: "each", sku: "111100000123" },
+    { name: "Restorative Eye Treatment", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 128, uom: "each", sku: "111100000124" },
+    { name: "Restorative Skin Complex", vendor: "Alastin", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 258, uom: "each", sku: "111100000095" },
+    { name: "Restylane Contour", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 78, uom: "each", sku: "111100000039" },
+    { name: "Restylane Contour - SAMPLE", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 78, uom: "pack of 10", sku: "111100000137" },
+    { name: "Restylane Defyne", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 70, uom: "each", sku: "5006490" },
+    { name: "Restylane Eyelight", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000108" },
+    { name: "Restylane Kysse", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 82, uom: "each", sku: "111100000006" },
+    { name: "Restylane Lyft", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 65, uom: "each", sku: "5006151" },
+    { name: "Restylane Refyne", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 70, uom: "each", sku: "5006492" },
+    { name: "Restylane-L", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 65, uom: "each", sku: "5006152" },
+    { name: "ReSURFACE Skin Polish", vendor: "Alastin", category: "Facial Care", sub: "Cleanser", type: ProductType.RETAIL, price: 78, uom: "each", sku: "111100000096" },
+    { name: "RHA 2", vendor: "Revance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 80, uom: "each", sku: "111100000167" },
+    { name: "RHA 3", vendor: "Revance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 80, uom: "each", sku: "111100000168" },
+    { name: "RHA 4", vendor: "Revance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 70.83, uom: "each", sku: "111100000169" },
+    { name: "RHA Redensity", vendor: "Revance", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 80, uom: "each", sku: "111100000166" },
+    { name: "Rinseaway, 8 oz. bottle", vendor: "Hydrafacial", category: "Services", sub: "Hydrafacial", type: ProductType.CONSUMABLE, price: 0, uom: "pack of 15", sku: "70140" },
+    { name: "S-25 Insulated Semi-Needle", vendor: "Cynosure", category: "Services", sub: "Potenza", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000113" },
+    { name: "Sculptra", vendor: "Galderma", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "5005044" },
+    { name: "Skin Booster", vendor: "Rejuran", category: "Services", sub: "Add Ons", type: ProductType.CONSUMABLE, price: 95, uom: "each", sku: "111100000171" },
+    { name: "SkinPen Masque", vendor: "Bellus Medical", category: "Services", sub: "Mask", type: ProductType.CONSUMABLE, price: 25, uom: "each", sku: "111100000097" },
+    { name: "SkinPen Treatment Kit", vendor: "Bellus Medical", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "BASIC-F5SP014" },
+    { name: "SKINVIVE", vendor: "Allergan", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000109" },
+    { name: "Solo Hydrating Defense MEN", vendor: "Skinbetter Science", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 175, uom: "each", sku: "111100000007" },
+    { name: "STAFF Bioadaptive Stress Repair", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000153" },
+    { name: "STAFF Bioadaptive Stress Repair REFILL", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000158" },
+    { name: "STAFF Dynamic Age Defense", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000152" },
+    { name: "STAFF Dynamic Age Defense REFILL", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000159" },
+    { name: "STAFF Gentle Amino Powerwash", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000151" },
+    { name: "STAFF Precision Eye Lift", vendor: "Pavise", category: "Facial Care", sub: "Staff Product", type: ProductType.RETAIL, price: 0, uom: "each", sku: "111100000160" },
+    { name: "sunbetter SHEER 70 Sunscreen Lotion", vendor: "Skinbetter Science", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 75, uom: "each", sku: "111100000016" },
+    { name: "sunbetter SHEER SPF 56 Sunscreen Stick", vendor: "Skinbetter Science", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 55, uom: "each", sku: "858970006467" },
+    { name: "sunbetter TONE SMART 75 Sunscreen Lotion", vendor: "Skinbetter Science", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 75, uom: "each", sku: "111100000015" },
+    { name: "sunbetter TONE SMART SPF 68 Sunscreen Compact", vendor: "Skinbetter Science", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 65, uom: "each", sku: "858970006481" },
+    { name: "sunbetter TONE SMART SPF 75 Sunscreen Lotion 15ml", vendor: "Skinbetter Science", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 35, uom: "each", sku: "111100000044" },
+    { name: "SupraTonic C", vendor: "Circē", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 105, uom: "each", sku: "111100000162" },
+    { name: "Techno Neck Perfecting Cream", vendor: "Skinbetter Science", category: "Facial Care", sub: "Correcting Creams", type: ProductType.RETAIL, price: 155, uom: "each", sku: "111100000041" },
+    { name: "TNS A+", vendor: "SkinMedica", category: "Facial Care", sub: "Targeted Treatments", type: ProductType.RETAIL, price: 295, uom: "each", sku: "111100000026" },
+    { name: "TNS Ceramide Treatment Cream", vendor: "SkinMedica", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 72, uom: "each", sku: "0023495702" },
+    { name: "TNS Eye Repair", vendor: "SkinMedica", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 106, uom: "each", sku: "300234934059" },
+    { name: "TNS Advanced+ Pro Infusion Serum", vendor: "SkinMedica", category: "Services", sub: "Diamond Glow", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000106" },
+    { name: "Trio Luxe Moisture Treatment 50ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 180, uom: "each", sku: "SA100200" },
+    { name: "Trio Rebalancing Moisture Treatment 50ML", vendor: "Skinbetter Science", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 160, uom: "each", sku: "858970106389" },
+    { name: "Ultra Sheer Moisturizer", vendor: "SkinMedica", category: "Facial Care", sub: "Moisturizer", type: ProductType.RETAIL, price: 60, uom: "each", sku: "300234952022" },
+    { name: "UV Clear Deep Tinted", vendor: "Elta MD", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 47, uom: "each", sku: "111100000135" },
+    { name: "UV Clear Tinted", vendor: "Elta MD", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 47, uom: "each", sku: "111100000134" },
+    { name: "UV Clear Untinted", vendor: "Elta MD", category: "Facial Care", sub: "Sun Protection", type: ProductType.RETAIL, price: 45, uom: "each", sku: "111100000133" },
+    { name: "VI Peel Large Body", vendor: "Vitality Institute", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 350, uom: "each", sku: "111100000144" },
+    { name: "VI Peel Original", vendor: "Vitality Institute", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000053" },
+    { name: "VI Peel Precision Plus", vendor: "Vitality Institute", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000054" },
+    { name: "VI Peel Purify w/ Precision Plus", vendor: "Vitality Institute", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000055" },
+    { name: "VI Peel Small Body", vendor: "Vitality Institute", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 350, uom: "each", sku: "111100000143" },
+    { name: "Vitalize Peel", vendor: "SkinMedica", category: "Services", sub: "Peels", type: ProductType.CONSUMABLE, price: 175, uom: "each", sku: "94942" },
+    { name: "Vitamin C Pro Infusion Serum", vendor: "SkinMedica", category: "Services", sub: "Diamond Glow", type: ProductType.CONSUMABLE, price: 0, uom: "each", sku: "111100000107" },
+    { name: "Xeomin", vendor: "Merz Aesthetics", category: "Services", sub: "Injectables", type: ProductType.CONSUMABLE, price: 5.11, uom: "each", sku: "111100000101" },
+    { name: "Xtressé", vendor: "Xtressé", category: "Wellness", sub: "Hair Growth", type: ProductType.RETAIL, price: 78, uom: "each", sku: "111100000172" },
   ];
 
   let productCount = 0;
   for (const p of productData) {
-    const vendor = v(p.vendorCode);
-    const category = c(p.category);
+    if (!p.vendor) {
+      console.warn(`  ⚠ Skipped product "${p.name}" — no vendor`);
+      continue;
+    }
+    const vendor = v(p.vendor);
+    const category = cat(p.category);
+    if (!vendor || !category) {
+      console.warn(`  ⚠ Skipped "${p.name}" — vendor "${p.vendor}" ${vendor ? "found" : "NOT FOUND"}, category "${p.category}" ${category ? "found" : "NOT FOUND"}`);
+      continue;
+    }
     await prisma.product.create({
       data: {
         name: p.name,
+        sku: p.sku || null,
         vendorId: vendor.id,
         categoryId: category.id,
-        unitPrice: p.unitPrice,
-        unitOfMeasure: p.unitOfMeasure,
+        productType: p.type,
+        subCategory: p.sub,
+        unitPrice: p.price,
+        unitOfMeasure: p.uom,
       },
     });
     productCount++;
@@ -213,12 +342,12 @@ async function main() {
   const pw = await hash("password123", 12);
 
   const userData = [
-    { email: "clay@secretmedspa.com", name: "Clay Magnuson", role: Role.ADMIN, locationCode: null },
-    { email: "purchasing@secretmedspa.com", name: "Garrett Gay", role: Role.PURCHASER, locationCode: null },
+    { email: "clay@secretmedspa.com", name: "Clay Magnuson", role: Role.ADMIN, locationCode: null as string | null },
+    { email: "purchasing@secretmedspa.com", name: "Garrett Gay", role: Role.PURCHASER, locationCode: null as string | null },
     { email: "manager.atx@itsasecret.com", name: "ATX Manager", role: Role.MANAGER, locationCode: "ATX" },
     { email: "manager.dal@itsasecret.com", name: "DAL Manager", role: Role.MANAGER, locationCode: "DAL" },
     { email: "manager.hou@itsasecret.com", name: "HOU Manager", role: Role.MANAGER, locationCode: "HOU" },
-    { email: "manager.phx@itsasecret.com", name: "PHX Manager", role: Role.MANAGER, locationCode: "PHX" },
+    { email: "manager.phx@itsasecret.com", name: "PHX Manager", role: Role.MANAGER, locationCode: "SCOTT" },
     { email: "employee1@itsasecret.com", name: "Sarah Johnson", role: Role.EMPLOYEE, locationCode: "ATX" },
     { email: "employee2@itsasecret.com", name: "Mike Chen", role: Role.EMPLOYEE, locationCode: "DAL" },
     { email: "employee3@itsasecret.com", name: "Emily Davis", role: Role.EMPLOYEE, locationCode: "HOU" },
@@ -244,44 +373,41 @@ async function main() {
 
   // ── Sample Purchase Orders ─────────────────────────
   const admin = users.find((u) => u.email === "clay@secretmedspa.com")!;
-  const purchaser = users.find((u) => u.email === "purchasing@secretmedspa.com")!;
   const emp1 = users.find((u) => u.email === "employee1@itsasecret.com")!;
   const emp2 = users.find((u) => u.email === "employee2@itsasecret.com")!;
   const emp3 = users.find((u) => u.email === "employee3@itsasecret.com")!;
   const mgrAtx = users.find((u) => u.email === "manager.atx@itsasecret.com")!;
 
-  const allergan = v("ALLERGAN");
-  const mckesson = v("MCKESSON");
-  const hydrafacial = v("HYDRAFACIAL");
-  const galderma = v("GALDERMA");
-  const odp = v("ODP");
+  const allerganV = vendors.find((x) => x.code === "ALLERGAN")!;
+  const galdermaV = vendors.find((x) => x.code === "GALDERMA")!;
+  const hydrafacialV = vendors.find((x) => x.code === "HYDRAFACIAL")!;
+  const skinmedV = vendors.find((x) => x.code === "SKINMEDICA")!;
 
   const atx = locations.find((l) => l.code === "ATX")!;
   const dal = locations.find((l) => l.code === "DAL")!;
   const hou = locations.find((l) => l.code === "HOU")!;
 
-  // Get some products for line items
   const allProducts = await prisma.product.findMany();
-  const findProduct = (name: string) => allProducts.find((p: { name: string }) => p.name.includes(name))!;
+  const findProduct = (name: string) => allProducts.find((p) => p.name.includes(name))!;
 
-  // PO 1: Delivered
-  const po1 = await prisma.purchaseOrder.create({
+  // PO 1: Delivered — Botox + Juvederm
+  await prisma.purchaseOrder.create({
     data: {
       orderNumber: "PO-2026-0001",
       locationId: atx.id,
       requestedById: emp1.id,
-      vendorId: allergan.id,
+      vendorId: allerganV.id,
       status: OrderStatus.DELIVERED,
       priority: Priority.NORMAL,
-      totalAmount: 2508,
+      totalAmount: 210,
       requestedAt: new Date("2026-02-01"),
       approvedAt: new Date("2026-02-01"),
       orderedAt: new Date("2026-02-02"),
       deliveredAt: new Date("2026-02-05"),
       items: {
         create: [
-          { name: "Botox 100U", productId: findProduct("Botox 100U").id, quantity: 5, unitPrice: 396, totalPrice: 1980 },
-          { name: "Juvederm Ultra XC", productId: findProduct("Juvederm Ultra XC").id, quantity: 2, unitPrice: 270, totalPrice: 540 - 12 },
+          { name: "Botox", productId: findProduct("Botox").id, quantity: 10, unitPrice: 13.5, totalPrice: 135 },
+          { name: "Juvederm Ultra XC", productId: findProduct("Juvederm Ultra XC").id, quantity: 1, unitPrice: 70, totalPrice: 70 },
         ],
       },
       approvals: {
@@ -290,83 +416,82 @@ async function main() {
     },
   });
 
-  // PO 2: Approved, waiting to be ordered
-  const po2 = await prisma.purchaseOrder.create({
+  // PO 2: Approved — Galderma fillers
+  await prisma.purchaseOrder.create({
     data: {
       orderNumber: "PO-2026-0002",
       locationId: dal.id,
       requestedById: emp2.id,
-      vendorId: mckesson.id,
+      vendorId: galdermaV.id,
       status: OrderStatus.APPROVED,
       priority: Priority.HIGH,
-      totalAmount: 95,
+      totalAmount: 355,
       requestedAt: new Date("2026-02-20"),
       approvedAt: new Date("2026-02-20"),
       items: {
         create: [
-          { name: "Gauze Pads 4x4 (200ct)", productId: findProduct("Gauze Pads").id, quantity: 3, unitPrice: 15, totalPrice: 45 },
-          { name: "Alcohol Prep Pads (200ct)", productId: findProduct("Alcohol Prep").id, quantity: 2, unitPrice: 8, totalPrice: 16 },
-          { name: "BD Syringes 1mL (100ct)", productId: findProduct("BD Syringes").id, quantity: 1, unitPrice: 28, totalPrice: 28 },
+          { name: "Dysport", productId: findProduct("Dysport").id, quantity: 5, unitPrice: 4, totalPrice: 20 },
+          { name: "Restylane Kysse", productId: findProduct("Restylane Kysse").id, quantity: 3, unitPrice: 82, totalPrice: 246 },
+          { name: "Restylane Defyne", productId: findProduct("Restylane Defyne").id, quantity: 1, unitPrice: 70, totalPrice: 70 },
         ],
       },
     },
   });
 
-  // PO 3: Pending approval
-  const po3 = await prisma.purchaseOrder.create({
+  // PO 3: Pending approval — HydraFacial supplies
+  await prisma.purchaseOrder.create({
     data: {
       orderNumber: "PO-2026-0003",
       locationId: hou.id,
       requestedById: emp3.id,
-      vendorId: hydrafacial.id,
+      vendorId: hydrafacialV.id,
       status: OrderStatus.PENDING_APPROVAL,
       priority: Priority.NORMAL,
-      totalAmount: 434,
+      totalAmount: 0,
       requestedAt: new Date("2026-02-25"),
       items: {
         create: [
-          { name: "HydraFacial Hydra-Medic Tips (10pk)", productId: findProduct("Hydra-Medic Tips").id, quantity: 1, unitPrice: 350, totalPrice: 350 },
-          { name: "HydraFacial Activ-4 Serum 60mL", productId: findProduct("Activ-4 Serum").id, quantity: 2, unitPrice: 42, totalPrice: 84 },
+          { name: "Hydropeel Tip, Blue 15-Pack", productId: findProduct("Hydropeel Tip, Blue").id, quantity: 2, unitPrice: 0, totalPrice: 0 },
+          { name: "Activ-4 Skin Solution, 8 oz. bottle", productId: findProduct("Activ-4 Skin Solution").id, quantity: 3, unitPrice: 0, totalPrice: 0 },
         ],
       },
     },
   });
 
-  // PO 4: Draft
-  const po4 = await prisma.purchaseOrder.create({
+  // PO 4: Draft — SkinMedica retail
+  await prisma.purchaseOrder.create({
     data: {
       orderNumber: "PO-2026-0004",
       locationId: atx.id,
       requestedById: emp1.id,
-      vendorId: odp.id,
+      vendorId: skinmedV.id,
       status: OrderStatus.DRAFT,
       priority: Priority.LOW,
-      totalAmount: 115,
+      totalAmount: 476,
       items: {
         create: [
-          { name: "Copy Paper (10 ream case)", productId: findProduct("Copy Paper").id, quantity: 1, unitPrice: 45, totalPrice: 45 },
-          { name: "Facial Tissue Boxes (36ct)", productId: findProduct("Facial Tissue").id, quantity: 1, unitPrice: 38, totalPrice: 38 },
-          { name: "Hand Sanitizer 8oz (12ct)", productId: findProduct("Hand Sanitizer").id, quantity: 1, unitPrice: 32, totalPrice: 32 },
+          { name: "TNS A+", productId: findProduct("TNS A+").id, quantity: 1, unitPrice: 295, totalPrice: 295 },
+          { name: "HA5 Rejuvenating Hydrator 2oz", productId: findProduct("HA5 Rejuvenating Hydrator").id, quantity: 1, unitPrice: 184, totalPrice: 184 },
         ],
       },
     },
   });
 
   // PO 5: Cancelled
-  const po5 = await prisma.purchaseOrder.create({
+  await prisma.purchaseOrder.create({
     data: {
       orderNumber: "PO-2026-0005",
       locationId: dal.id,
       requestedById: emp2.id,
-      vendorId: galderma.id,
+      vendorId: galdermaV.id,
       status: OrderStatus.CANCELLED,
       priority: Priority.NORMAL,
-      totalAmount: 1380,
+      totalAmount: 20,
       cancelledAt: new Date("2026-02-18"),
       requestedAt: new Date("2026-02-15"),
       items: {
         create: [
-          { name: "Dysport 300U", productId: findProduct("Dysport").id, quantity: 3, unitPrice: 460, totalPrice: 1380 },
+          { name: "Dysport", productId: findProduct("Dysport").id, quantity: 5, unitPrice: 4, totalPrice: 20 },
         ],
       },
       approvals: {
@@ -377,44 +502,48 @@ async function main() {
 
   console.log(`✓ 5 sample purchase orders seeded`);
 
-  // ── Par Levels ─────────────────────────────────────
+  // ── Par Levels (consumable/both products at key locations) ──
   const parLevelData = [
-    // ATX - Austin
-    { productName: "Botox 100U", locationCode: "ATX", min: 10, max: 20, current: 8 },
-    { productName: "Botox 200U", locationCode: "ATX", min: 5, max: 10, current: 6 },
+    // ATX - Austin — Injectables
+    { productName: "Botox", locationCode: "ATX", min: 10, max: 20, current: 8 },
     { productName: "Juvederm Ultra XC", locationCode: "ATX", min: 8, max: 15, current: 3 },
-    { productName: "Dysport 300U", locationCode: "ATX", min: 6, max: 12, current: 7 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", min: 10, max: 25, current: 4 },
-    { productName: "Alcohol Prep Pads", locationCode: "ATX", min: 5, max: 10, current: 6 },
-    { productName: "Gauze Pads", locationCode: "ATX", min: 5, max: 10, current: 2 },
-    { productName: "BD Syringes", locationCode: "ATX", min: 3, max: 8, current: 5 },
-    { productName: "Needles 30G", locationCode: "ATX", min: 3, max: 8, current: 4 },
-    { productName: "HydraFacial Hydra-Medic Tips", locationCode: "ATX", min: 2, max: 5, current: 3 },
-    { productName: "BLT Numbing Cream 30g", locationCode: "ATX", min: 10, max: 20, current: 12 },
-    { productName: "Alastin Regenerating", locationCode: "ATX", min: 4, max: 8, current: 1 },
+    { productName: "Juvederm Voluma", locationCode: "ATX", min: 5, max: 10, current: 6 },
+    { productName: "Dysport", locationCode: "ATX", min: 6, max: 12, current: 7 },
+    { productName: "Restylane Kysse", locationCode: "ATX", min: 4, max: 8, current: 5 },
+    // ATX - Hydrafacial supplies
+    { productName: "Hydropeel Tip, Blue", locationCode: "ATX", min: 2, max: 5, current: 3 },
+    { productName: "Activ-4 Skin Solution", locationCode: "ATX", min: 2, max: 4, current: 1 },
+    // ATX - Peels
+    { productName: "VI Peel Original", locationCode: "ATX", min: 3, max: 6, current: 4 },
+    { productName: "Illuminize Peel", locationCode: "ATX", min: 2, max: 5, current: 2 },
+    // ATX - Morpheus
+    { productName: "Morpheus8 24 Pin Tip", locationCode: "ATX", min: 3, max: 8, current: 5 },
+    // ATX - Backbar
+    { productName: "BACKBAR - HA5 Hydra Collagen", locationCode: "ATX", min: 1, max: 3, current: 2 },
+    { productName: "BACKBAR - Facial Cleanser", locationCode: "ATX", min: 1, max: 3, current: 1 },
 
     // DAL - Dallas
-    { productName: "Botox 100U", locationCode: "DAL", min: 12, max: 24, current: 15 },
+    { productName: "Botox", locationCode: "DAL", min: 12, max: 24, current: 15 },
     { productName: "Juvederm Ultra XC", locationCode: "DAL", min: 6, max: 12, current: 8 },
-    { productName: "Dysport 300U", locationCode: "DAL", min: 8, max: 16, current: 2 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "DAL", min: 12, max: 30, current: 14 },
-    { productName: "Sharps Container", locationCode: "DAL", min: 4, max: 8, current: 1 },
+    { productName: "Dysport", locationCode: "DAL", min: 8, max: 16, current: 2 },
     { productName: "Sculptra", locationCode: "DAL", min: 4, max: 8, current: 5 },
-    { productName: "Restylane", locationCode: "DAL", min: 6, max: 12, current: 7 },
-    { productName: "BLT Numbing Cream 30g", locationCode: "DAL", min: 8, max: 16, current: 9 },
+    { productName: "Restylane Defyne", locationCode: "DAL", min: 4, max: 8, current: 6 },
+    { productName: "Restylane-L", locationCode: "DAL", min: 4, max: 8, current: 7 },
+    { productName: "Xeomin", locationCode: "DAL", min: 3, max: 6, current: 4 },
+    { productName: "Morpheus8 24 Pin Tip", locationCode: "DAL", min: 3, max: 6, current: 1 },
 
     // HOU - Houston
-    { productName: "Botox 100U", locationCode: "HOU", min: 8, max: 16, current: 10 },
-    { productName: "Restylane", locationCode: "HOU", min: 6, max: 12, current: 4 },
-    { productName: "Nitrile Gloves - Small", locationCode: "HOU", min: 8, max: 20, current: 9 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "HOU", min: 10, max: 20, current: 3 },
-    { productName: "Morpheus8 Tips", locationCode: "HOU", min: 2, max: 4, current: 1 },
-    { productName: "HydraFacial Activ-4 Serum", locationCode: "HOU", min: 4, max: 8, current: 5 },
+    { productName: "Botox", locationCode: "HOU", min: 8, max: 16, current: 10 },
+    { productName: "Restylane Kysse", locationCode: "HOU", min: 4, max: 8, current: 4 },
+    { productName: "Restylane Lyft", locationCode: "HOU", min: 3, max: 6, current: 2 },
+    { productName: "Hydropeel Tip, Blue", locationCode: "HOU", min: 2, max: 4, current: 1 },
+    { productName: "Morpheus8 24 Pin Tip", locationCode: "HOU", min: 2, max: 4, current: 1 },
+    { productName: "Activ-4 Skin Solution", locationCode: "HOU", min: 2, max: 4, current: 3 },
   ];
 
   let parCount = 0;
   for (const pl of parLevelData) {
-    const product = allProducts.find((p: { name: string }) => p.name.includes(pl.productName));
+    const product = allProducts.find((p) => p.name.includes(pl.productName));
     const location = locations.find((l) => l.code === pl.locationCode);
     if (product && location) {
       await prisma.parLevel.upsert({
@@ -430,23 +559,14 @@ async function main() {
   console.log(`✓ ${parCount} par levels seeded`);
 
   // ── Historical Inventory Counts ────────────────────
-  // Weekly counts for key products at ATX to demonstrate burn rates
   const countHistory = [
-    // Botox 100U at ATX — steady decline
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 6, qty: 18 },
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 5, qty: 16 },
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 4, qty: 14 },
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 3, qty: 12 },
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 2, qty: 11 },
-    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 1, qty: 8 },
-
-    // Nitrile Gloves Medium at ATX — high burn rate
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 6, qty: 20 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 5, qty: 17 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 4, qty: 12 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 3, qty: 9 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 2, qty: 6 },
-    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 1, qty: 4 },
+    // Botox at ATX — steady decline
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 6, qty: 18 },
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 5, qty: 16 },
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 4, qty: 14 },
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 3, qty: 12 },
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 2, qty: 11 },
+    { productName: "Botox", locationCode: "ATX", weeksAgo: 1, qty: 8 },
 
     // Juvederm Ultra XC at ATX — moderate decline
     { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 6, qty: 10 },
@@ -457,34 +577,33 @@ async function main() {
     { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 1, qty: 3 },
 
     // Dysport at DAL — sharp decline
-    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 5, qty: 14 },
-    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 4, qty: 10 },
-    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 3, qty: 7 },
-    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 2, qty: 4 },
-    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 1, qty: 2 },
+    { productName: "Dysport", locationCode: "DAL", weeksAgo: 5, qty: 14 },
+    { productName: "Dysport", locationCode: "DAL", weeksAgo: 4, qty: 10 },
+    { productName: "Dysport", locationCode: "DAL", weeksAgo: 3, qty: 7 },
+    { productName: "Dysport", locationCode: "DAL", weeksAgo: 2, qty: 4 },
+    { productName: "Dysport", locationCode: "DAL", weeksAgo: 1, qty: 2 },
 
-    // Botox 100U at DAL — stable
-    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 4, qty: 20 },
-    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 3, qty: 18 },
-    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 2, qty: 17 },
-    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 1, qty: 15 },
+    // Botox at DAL — stable
+    { productName: "Botox", locationCode: "DAL", weeksAgo: 4, qty: 20 },
+    { productName: "Botox", locationCode: "DAL", weeksAgo: 3, qty: 18 },
+    { productName: "Botox", locationCode: "DAL", weeksAgo: 2, qty: 17 },
+    { productName: "Botox", locationCode: "DAL", weeksAgo: 1, qty: 15 },
 
-    // Restylane at HOU — declining
-    { productName: "Restylane", locationCode: "HOU", weeksAgo: 5, qty: 10 },
-    { productName: "Restylane", locationCode: "HOU", weeksAgo: 4, qty: 8 },
-    { productName: "Restylane", locationCode: "HOU", weeksAgo: 3, qty: 7 },
-    { productName: "Restylane", locationCode: "HOU", weeksAgo: 2, qty: 5 },
-    { productName: "Restylane", locationCode: "HOU", weeksAgo: 1, qty: 4 },
+    // Restylane Kysse at HOU — declining
+    { productName: "Restylane Kysse", locationCode: "HOU", weeksAgo: 5, qty: 10 },
+    { productName: "Restylane Kysse", locationCode: "HOU", weeksAgo: 4, qty: 8 },
+    { productName: "Restylane Kysse", locationCode: "HOU", weeksAgo: 3, qty: 7 },
+    { productName: "Restylane Kysse", locationCode: "HOU", weeksAgo: 2, qty: 5 },
+    { productName: "Restylane Kysse", locationCode: "HOU", weeksAgo: 1, qty: 4 },
   ];
 
   let countNum = 0;
   for (const ch of countHistory) {
-    const product = allProducts.find((p: { name: string }) => p.name.includes(ch.productName));
+    const product = allProducts.find((p) => p.name.includes(ch.productName));
     const location = locations.find((l) => l.code === ch.locationCode);
     if (product && location) {
       const countDate = new Date();
       countDate.setDate(countDate.getDate() - ch.weeksAgo * 7);
-
       await prisma.inventoryCount.create({
         data: {
           productId: product.id,

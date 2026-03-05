@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
           sku: true,
           unitPrice: true,
           unitOfMeasure: true,
+          productType: true,
+          subCategory: true,
           vendor: { select: { id: true, name: true, code: true } },
           category: { select: { id: true, name: true } },
         },

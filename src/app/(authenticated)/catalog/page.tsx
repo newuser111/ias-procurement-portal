@@ -9,14 +9,41 @@ interface Product {
   sku: string | null;
   unitPrice: number;
   unitOfMeasure: string;
+  productType: "CONSUMABLE" | "RETAIL" | "BOTH";
+  subCategory: string | null;
   vendor: { id: string; name: string; code: string };
   category: { id: string; name: string } | null;
 }
+
+type TypeFilter = "" | "CONSUMABLE" | "RETAIL" | "BOTH";
+
+const typeBadge = (type: string) => {
+  switch (type) {
+    case "CONSUMABLE":
+      return "bg-blue-100 text-blue-700";
+    case "RETAIL":
+      return "bg-green-100 text-green-700";
+    case "BOTH":
+      return "bg-purple-100 text-purple-700";
+    default:
+      return "bg-ias-gray-100 text-ias-gray-600";
+  }
+};
+
+const typeLabel = (type: string) => {
+  switch (type) {
+    case "CONSUMABLE": return "Consumable";
+    case "RETAIL": return "Retail";
+    case "BOTH": return "Both";
+    default: return type;
+  }
+};
 
 export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("");
   const [openVendors, setOpenVendors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -26,16 +53,23 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter products by search
+  // Filter products by search + type
   const filtered = products.filter((p) => {
+    if (typeFilter && p.productType !== typeFilter) return false;
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
       p.name.toLowerCase().includes(q) ||
       p.vendor.name.toLowerCase().includes(q) ||
-      (p.category?.name || "").toLowerCase().includes(q)
+      (p.category?.name || "").toLowerCase().includes(q) ||
+      (p.subCategory || "").toLowerCase().includes(q)
     );
   });
+
+  // Count by type
+  const consumableCount = products.filter((p) => p.productType === "CONSUMABLE").length;
+  const retailCount = products.filter((p) => p.productType === "RETAIL").length;
+  const bothCount = products.filter((p) => p.productType === "BOTH").length;
 
   // Group by vendor
   const grouped = filtered.reduce<Record<string, { vendor: { id: string; name: string; code: string }; products: Product[] }>>((acc, p) => {
@@ -82,6 +116,50 @@ export default function CatalogPage() {
         </Link>
       </div>
 
+      {/* Type Filter Tabs */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setTypeFilter("")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            !typeFilter
+              ? "bg-ias-charcoal text-white"
+              : "bg-white border border-ias-gray-300 text-ias-gray-600 hover:bg-ias-gray-50"
+          }`}
+        >
+          All ({products.length})
+        </button>
+        <button
+          onClick={() => setTypeFilter("CONSUMABLE")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            typeFilter === "CONSUMABLE"
+              ? "bg-blue-600 text-white"
+              : "bg-white border border-ias-gray-300 text-ias-gray-600 hover:bg-ias-gray-50"
+          }`}
+        >
+          Consumable ({consumableCount})
+        </button>
+        <button
+          onClick={() => setTypeFilter("RETAIL")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            typeFilter === "RETAIL"
+              ? "bg-green-600 text-white"
+              : "bg-white border border-ias-gray-300 text-ias-gray-600 hover:bg-ias-gray-50"
+          }`}
+        >
+          Retail ({retailCount})
+        </button>
+        <button
+          onClick={() => setTypeFilter("BOTH")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            typeFilter === "BOTH"
+              ? "bg-purple-600 text-white"
+              : "bg-white border border-ias-gray-300 text-ias-gray-600 hover:bg-ias-gray-50"
+          }`}
+        >
+          Both ({bothCount})
+        </button>
+      </div>
+
       {/* Search + Controls */}
       <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4">
         <div className="flex flex-col sm:flex-row gap-3 items-center">
@@ -93,7 +171,7 @@ export default function CatalogPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products, vendors, or categories..."
+              placeholder="Search products, vendors, categories, or subcategories..."
               className="w-full pl-10 pr-4 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold focus:border-transparent"
             />
           </div>
@@ -117,10 +195,10 @@ export default function CatalogPage() {
         <div className="space-y-2">
           {sortedVendors.map(({ vendor, products: vendorProducts }) => {
             const isOpen = openVendors.has(vendor.code);
-            const byCategory = vendorProducts.reduce<Record<string, Product[]>>((acc, p) => {
-              const cat = p.category?.name || "Uncategorized";
-              if (!acc[cat]) acc[cat] = [];
-              acc[cat].push(p);
+            const bySubCategory = vendorProducts.reduce<Record<string, Product[]>>((acc, p) => {
+              const sub = p.subCategory || p.category?.name || "Uncategorized";
+              if (!acc[sub]) acc[sub] = [];
+              acc[sub].push(p);
               return acc;
             }, {});
 
@@ -149,19 +227,35 @@ export default function CatalogPage() {
 
                 {isOpen && (
                   <div className="border-t border-ias-gray-200">
-                    {Object.entries(byCategory).sort(([a], [b]) => a.localeCompare(b)).map(([category, catProducts]) => (
-                      <div key={category}>
+                    {Object.entries(bySubCategory).sort(([a], [b]) => a.localeCompare(b)).map(([subCat, catProducts]) => (
+                      <div key={subCat}>
                         <div className="px-5 py-2 bg-ias-gray-50 text-xs font-medium text-ias-gray-500 uppercase tracking-wider">
-                          {category}
+                          {subCat}
                         </div>
                         <table className="w-full text-sm">
                           <tbody className="divide-y divide-ias-gray-100">
                             {catProducts.sort((a, b) => a.name.localeCompare(b.name)).map((p) => (
                               <tr key={p.id} className="hover:bg-ias-gray-50">
-                                <td className="pl-12 pr-4 py-2.5 font-medium text-ias-charcoal">{p.name}</td>
+                                <td className="pl-12 pr-4 py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-ias-charcoal">{p.name}</span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${typeBadge(p.productType)}`}>
+                                      {typeLabel(p.productType)}
+                                    </span>
+                                  </div>
+                                  {p.sku && (
+                                    <div className="text-[10px] text-ias-gray-400 mt-0.5">SKU: {p.sku}</div>
+                                  )}
+                                </td>
                                 <td className="px-4 py-2.5 text-right text-ias-gray-600 whitespace-nowrap">
-                                  <span className="font-semibold">${p.unitPrice.toFixed(2)}</span>
-                                  <span className="text-ias-gray-400 text-xs ml-1">/ {p.unitOfMeasure}</span>
+                                  {p.unitPrice > 0 ? (
+                                    <>
+                                      <span className="font-semibold">${p.unitPrice.toFixed(2)}</span>
+                                      <span className="text-ias-gray-400 text-xs ml-1">/ {p.unitOfMeasure}</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-ias-gray-300 text-xs">—</span>
+                                  )}
                                 </td>
                               </tr>
                             ))}

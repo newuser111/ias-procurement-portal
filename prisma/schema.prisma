@@ -43,6 +43,12 @@ enum CountSessionStatus {
   COMPLETED
 }
 
+enum ProductType {
+  CONSUMABLE
+  RETAIL
+  BOTH
+}
+
 // ── Users & Locations ──────────────────────────────────
 
 model User {
@@ -121,19 +127,21 @@ model Category {
 }
 
 model Product {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String
   sku           String?
   description   String?
   vendorId      String
-  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  vendor        Vendor      @relation(fields: [vendorId], references: [id])
   categoryId    String?
-  category      Category? @relation(fields: [categoryId], references: [id])
-  unitPrice     Float    @default(0)
-  unitOfMeasure String   @default("each")
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  productType   ProductType @default(CONSUMABLE)
+  subCategory   String?
+  unitPrice     Float       @default(0)
+  unitOfMeasure String      @default("each")
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   orderItems      OrderItem[]
   parLevels       ParLevel[]

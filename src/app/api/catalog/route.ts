@@ -9,15 +9,18 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const vendorId = searchParams.get("vendorId");
   const categoryId = searchParams.get("categoryId");
+  const productType = searchParams.get("productType");
   const search = searchParams.get("search");
 
   const where: Record<string, unknown> = { active: true };
   if (vendorId) where.vendorId = vendorId;
   if (categoryId) where.categoryId = categoryId;
+  if (productType) where.productType = productType;
   if (search) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
       { sku: { contains: search, mode: "insensitive" } },
+      { subCategory: { contains: search, mode: "insensitive" } },
     ];
   }
 

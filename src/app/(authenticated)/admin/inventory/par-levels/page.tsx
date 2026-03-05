@@ -34,6 +34,7 @@ interface EditableParLevel {
 interface ProductOption {
   id: string;
   name: string;
+  productType: string;
   vendor: { name: string };
   category: { name: string } | null;
 }
@@ -95,7 +96,8 @@ export default function ParLevelsPage() {
       .then((data) => {
         const allProducts = data.products || [];
         const trackedIds = new Set(parLevels.filter((pl) => pl.locationId === locationId).map((pl) => pl.productId));
-        const unset = allProducts.filter((p: ProductOption) => !trackedIds.has(p.id));
+        // Only show consumable/both products (retail products don't need par levels)
+        const unset = allProducts.filter((p: ProductOption) => !trackedIds.has(p.id) && p.productType !== "RETAIL");
         setUnsetProducts(unset);
       });
   }, [locationId, parLevels]);
