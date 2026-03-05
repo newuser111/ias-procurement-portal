@@ -39,13 +39,13 @@ interface OrderDetail {
 }
 
 const statusColors: Record<string, string> = {
-  DRAFT: "bg-ias-gray-200 text-ias-gray-700",
-  PENDING_APPROVAL: "bg-yellow-100 text-yellow-800",
-  APPROVED: "bg-blue-100 text-blue-800",
-  ORDERED: "bg-purple-100 text-purple-800",
-  SHIPPED: "bg-indigo-100 text-indigo-800",
-  DELIVERED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-700",
+  DRAFT: "bg-ias-gray-100 text-ias-gray-600",
+  PENDING_APPROVAL: "bg-ias-gray-100 text-amber-600",
+  APPROVED: "bg-ias-gray-100 text-blue-600",
+  ORDERED: "bg-ias-gray-100 text-purple-600",
+  SHIPPED: "bg-ias-gray-100 text-indigo-600",
+  DELIVERED: "bg-ias-gray-100 text-green-600",
+  CANCELLED: "bg-ias-gray-100 text-red-600",
 };
 
 const statusLabels: Record<string, string> = {
@@ -271,13 +271,16 @@ export default function OrderDetailPage() {
 
           {/* Reject Modal */}
           {showReject && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <h3 className="font-semibold text-red-800 mb-2">Reject Order</h3>
+            <div className="bg-white border border-ias-gray-200 rounded-xl p-4 shadow-sm">
+              <h3 className="font-semibold text-ias-charcoal mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-400" />
+                Reject Order
+              </h3>
               <textarea
                 value={rejectNotes}
                 onChange={(e) => setRejectNotes(e.target.value)}
                 placeholder="Reason for rejection..."
-                className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="w-full px-3 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold"
                 rows={3}
               />
               <div className="flex gap-2 mt-2">
@@ -331,7 +334,7 @@ export default function OrderDetailPage() {
                   <div key={a.id} className="text-sm">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        a.action === "APPROVED" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                        a.action === "APPROVED" ? "bg-ias-gray-100 text-green-600" : "bg-ias-gray-100 text-red-600"
                       }`}>
                         {a.action}
                       </span>

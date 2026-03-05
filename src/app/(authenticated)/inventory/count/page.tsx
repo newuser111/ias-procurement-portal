@@ -161,7 +161,7 @@ export default function InventoryCountPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-ias-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -309,12 +309,8 @@ export default function InventoryCountPage() {
           return (
             <div
               key={pl.productId}
-              className={`bg-white rounded-xl border transition-all ${
-                isBelowPar
-                  ? "border-red-200 shadow-sm"
-                  : isCounted
-                    ? "border-green-200 shadow-sm"
-                    : "border-ias-gray-200"
+              className={`bg-white rounded-xl border border-ias-gray-200 transition-all ${
+                isCounted ? "shadow-sm" : ""
               }`}
             >
               <div className="flex items-center gap-3 p-3">
@@ -360,9 +356,9 @@ export default function InventoryCountPage() {
                     placeholder="—"
                     className={`w-16 h-10 text-center text-base font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-ias-gold transition-colors ${
                       isBelowPar
-                        ? "border-red-300 bg-red-50 text-red-700"
+                        ? "border-red-200 bg-white text-red-600"
                         : isCounted
-                          ? "border-green-300 bg-green-50 text-green-700"
+                          ? "border-green-200 bg-white text-ias-charcoal"
                           : "border-ias-gray-300 bg-white text-ias-charcoal"
                     }`}
                   />
@@ -436,7 +432,7 @@ export default function InventoryCountPage() {
             <span className="font-semibold text-ias-charcoal">{filledCount}</span>
             <span className="text-ias-gray-500">/{totalCount} counted</span>
             {belowParCount > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+              <span className="ml-2 px-2 py-0.5 bg-ias-gray-100 text-red-600 text-xs font-medium rounded-full">
                 {belowParCount} below par
               </span>
             )}

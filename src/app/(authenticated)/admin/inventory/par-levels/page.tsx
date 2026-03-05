@@ -293,7 +293,7 @@ export default function ParLevelsPage() {
                 const isChanged = edit && (edit.minLevel !== edit.originalMin || edit.maxLevel !== edit.originalMax);
 
                 return (
-                  <tr key={pl.id} className={`hover:bg-ias-gray-50 ${isChanged ? "bg-amber-50" : ""}`}>
+                  <tr key={pl.id} className={`hover:bg-ias-gray-50 ${isChanged ? "bg-ias-gold/5" : ""}`}>
                     <td className="px-5 py-2">
                       <div className="font-medium text-ias-charcoal">{pl.product.name}</div>
                       {pl.product.sku && <div className="text-xs text-ias-gray-400">SKU: {pl.product.sku}</div>}
@@ -324,14 +324,15 @@ export default function ParLevelsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-2 text-center">
-                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                        pl.status === "OUT"
-                          ? "bg-red-100 text-red-700"
-                          : pl.status === "LOW"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-green-100 text-green-700"
-                      }`}>
-                        {pl.status === "OUT" ? "Out" : pl.status === "LOW" ? "Low" : "OK"}
+                      <span className="flex items-center justify-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          pl.status === "OUT" ? "bg-red-400" : pl.status === "LOW" ? "bg-amber-400" : "bg-green-400"
+                        }`} />
+                        <span className={`text-xs font-medium ${
+                          pl.status === "OUT" ? "text-red-600" : pl.status === "LOW" ? "text-amber-600" : "text-ias-gray-600"
+                        }`}>
+                          {pl.status === "OUT" ? "Out" : pl.status === "LOW" ? "Low" : "OK"}
+                        </span>
                       </span>
                     </td>
                   </tr>

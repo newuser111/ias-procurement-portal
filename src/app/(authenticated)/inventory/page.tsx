@@ -245,16 +245,20 @@ function InventoryPageContent() {
           <div className="text-2xl font-bold text-ias-charcoal">{parLevels.length}</div>
           <div className="text-xs text-ias-gray-500 mt-1">Products Tracked</div>
         </div>
-        <div className={`rounded-xl p-4 shadow-sm border ${belowPar.length > 0 ? "bg-red-50 border-red-200" : "bg-white border-ias-gray-200"}`}>
-          <div className={`text-2xl font-bold ${belowPar.length > 0 ? "text-red-700" : "text-ias-charcoal"}`}>
-            {belowPar.length}
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
+          <div className="flex items-center gap-2">
+            {belowPar.length > 0 && <span className="w-2 h-2 rounded-full bg-amber-400" />}
+            <span className={`text-2xl font-bold ${belowPar.length > 0 ? "text-amber-600" : "text-ias-charcoal"}`}>
+              {belowPar.length}
+            </span>
           </div>
-          <div className={`text-xs mt-1 ${belowPar.length > 0 ? "text-red-600" : "text-ias-gray-500"}`}>
-            Below Par
-          </div>
+          <div className="text-xs text-ias-gray-500 mt-1">Below Par</div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
-          <div className="text-2xl font-bold text-green-600">{okCount}</div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-2xl font-bold text-ias-charcoal">{okCount}</span>
+          </div>
           <div className="text-xs text-ias-gray-500 mt-1">At / Above Par</div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
@@ -292,41 +296,46 @@ function InventoryPageContent() {
         <>
           {/* Reorder Alerts */}
           {belowPar.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <h2 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                {belowPar.length} item{belowPar.length !== 1 ? "s" : ""} below par level
-              </h2>
-              <div className="space-y-2">
+            <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
+              <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
+                <h2 className="font-semibold text-ias-charcoal flex items-center gap-2 text-sm">
+                  <span className="w-2 h-2 rounded-full bg-red-400" />
+                  {belowPar.length} item{belowPar.length !== 1 ? "s" : ""} below par level
+                </h2>
+              </div>
+              <div className="divide-y divide-ias-gray-100">
                 {belowPar.slice(0, 5).map((pl) => (
-                  <div key={pl.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2 text-sm">
-                    <div>
-                      <span className="font-medium text-red-900">{pl.product.name}</span>
-                      <span className="text-red-600 ml-2 text-xs">{pl.product.vendor.name}</span>
-                      {isAdminOrPurchaser && (
-                        <span className="text-red-500 ml-2 text-xs">@ {pl.location.name}</span>
-                      )}
+                  <div key={pl.id} className="flex items-center justify-between px-4 py-3 text-sm">
+                    <div className="min-w-0">
+                      <span className="font-medium text-ias-charcoal">{pl.product.name}</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-ias-gray-400">{pl.product.vendor.name}</span>
+                        {isAdminOrPurchaser && (
+                          <>
+                            <span className="text-ias-gray-300">·</span>
+                            <span className="text-xs text-ias-gray-400">{pl.location.name}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className={`font-bold ${pl.currentQty === 0 ? "text-red-700" : "text-red-600"}`}>
+                    <div className="text-right whitespace-nowrap flex items-center gap-1.5">
+                      <span className={`text-sm font-semibold ${pl.currentQty === 0 ? "text-red-600" : "text-amber-600"}`}>
                         {pl.currentQty}
                       </span>
-                      <span className="text-red-400 mx-1">/</span>
-                      <span className="text-red-500">{pl.minLevel} min</span>
+                      <span className="text-ias-gray-300">/</span>
+                      <span className="text-xs text-ias-gray-500">{pl.minLevel}</span>
                     </div>
                   </div>
                 ))}
-                {belowPar.length > 5 && (
-                  <button
-                    onClick={() => setStatusFilter("LOW")}
-                    className="text-xs text-red-600 text-center pt-1 hover:text-red-800 w-full"
-                  >
-                    + {belowPar.length - 5} more items below par
-                  </button>
-                )}
               </div>
+              {belowPar.length > 5 && (
+                <button
+                  onClick={() => setStatusFilter("LOW")}
+                  className="block w-full text-xs text-ias-gray-500 text-center py-3 border-t border-ias-gray-100 hover:text-ias-charcoal"
+                >
+                  + {belowPar.length - 5} more
+                </button>
+              )}
             </div>
           )}
 
@@ -425,14 +434,15 @@ function InventoryPageContent() {
                       <td className="px-5 py-3 text-center text-ias-gray-600">{pl.minLevel}</td>
                       <td className="px-5 py-3 text-center text-ias-gray-500 hidden sm:table-cell">{pl.maxLevel ?? "—"}</td>
                       <td className="px-5 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          pl.status === "OUT"
-                            ? "bg-red-100 text-red-700"
-                            : pl.status === "LOW"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-green-100 text-green-700"
-                        }`}>
-                          {pl.status === "OUT" ? "Out" : pl.status === "LOW" ? "Low" : "OK"}
+                        <span className="flex items-center justify-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            pl.status === "OUT" ? "bg-red-400" : pl.status === "LOW" ? "bg-amber-400" : "bg-green-400"
+                          }`} />
+                          <span className={`text-xs font-medium ${
+                            pl.status === "OUT" ? "text-red-600" : pl.status === "LOW" ? "text-amber-600" : "text-ias-gray-600"
+                          }`}>
+                            {pl.status === "OUT" ? "Out" : pl.status === "LOW" ? "Low" : "OK"}
+                          </span>
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right text-ias-gray-500 text-xs hidden lg:table-cell">
@@ -463,9 +473,12 @@ function InventoryPageContent() {
             <>
               {/* Summary Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-                  <div className="text-2xl font-bold text-red-700">{reorderData.totalItems}</div>
-                  <div className="text-xs text-red-600 mt-1">Items to Reorder</div>
+                <div className="bg-white rounded-xl p-4 border border-ias-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    <span className="text-2xl font-bold text-ias-charcoal">{reorderData.totalItems}</span>
+                  </div>
+                  <div className="text-xs text-ias-gray-500 mt-1">Items to Reorder</div>
                 </div>
                 <div className="bg-white rounded-xl p-4 border border-ias-gray-200">
                   <div className="text-2xl font-bold text-ias-charcoal">{reorderData.vendorGroups.length}</div>
@@ -534,9 +547,12 @@ function InventoryPageContent() {
               ))}
 
               {reorderData.totalItems === 0 && (
-                <div className="bg-green-50 rounded-xl p-8 text-center border border-green-200">
-                  <div className="text-green-700 font-semibold">All items are at or above par levels!</div>
-                  <p className="text-green-600 text-sm mt-1">No reorders needed at this time.</p>
+                <div className="bg-white rounded-xl p-8 text-center border border-ias-gray-200">
+                  <div className="flex items-center justify-center gap-2 text-ias-charcoal font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-green-400" />
+                    All items are at or above par levels!
+                  </div>
+                  <p className="text-ias-gray-500 text-sm mt-1">No reorders needed at this time.</p>
                 </div>
               )}
             </>
@@ -664,12 +680,11 @@ function InventoryPageContent() {
                       <td className="px-5 py-3 text-ias-gray-600 hidden sm:table-cell">{s.countedBy.name}</td>
                       <td className="px-5 py-3 text-center font-medium text-ias-charcoal">{s._count.counts}</td>
                       <td className="px-5 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          s.status === "COMPLETED"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}>
-                          {s.status === "COMPLETED" ? "Completed" : "In Progress"}
+                        <span className="flex items-center justify-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${s.status === "COMPLETED" ? "bg-green-400" : "bg-amber-400"}`} />
+                          <span className={`text-xs font-medium ${s.status === "COMPLETED" ? "text-ias-gray-600" : "text-amber-600"}`}>
+                            {s.status === "COMPLETED" ? "Completed" : "In Progress"}
+                          </span>
                         </span>
                       </td>
                       <td className="px-5 py-3 text-ias-gray-500 text-xs hidden md:table-cell">

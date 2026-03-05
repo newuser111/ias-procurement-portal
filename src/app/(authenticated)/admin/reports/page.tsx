@@ -22,13 +22,13 @@ interface ReportData {
 }
 
 const statusColor: Record<string, string> = {
-  DRAFT: "bg-ias-gray-200 text-ias-gray-700",
-  PENDING_APPROVAL: "bg-amber-100 text-amber-800",
-  APPROVED: "bg-blue-100 text-blue-800",
-  ORDERED: "bg-indigo-100 text-indigo-800",
-  SHIPPED: "bg-purple-100 text-purple-800",
-  DELIVERED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-800",
+  DRAFT: "bg-ias-gray-100 text-ias-gray-600",
+  PENDING_APPROVAL: "bg-ias-gray-100 text-amber-600",
+  APPROVED: "bg-ias-gray-100 text-blue-600",
+  ORDERED: "bg-ias-gray-100 text-indigo-600",
+  SHIPPED: "bg-ias-gray-100 text-purple-600",
+  DELIVERED: "bg-ias-gray-100 text-green-600",
+  CANCELLED: "bg-ias-gray-100 text-red-600",
 };
 
 const statusLabel: Record<string, string> = {

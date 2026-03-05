@@ -12,10 +12,10 @@ interface User {
 }
 
 const roleBadge: Record<string, string> = {
-  ADMIN: "bg-purple-100 text-purple-800",
-  MANAGER: "bg-blue-100 text-blue-800",
-  PURCHASER: "bg-green-100 text-green-800",
-  EMPLOYEE: "bg-ias-gray-100 text-ias-gray-700",
+  ADMIN: "bg-ias-gray-100 text-purple-600",
+  MANAGER: "bg-ias-gray-100 text-blue-600",
+  PURCHASER: "bg-ias-gray-100 text-green-600",
+  EMPLOYEE: "bg-ias-gray-100 text-ias-gray-600",
 };
 
 export default function UsersPage() {

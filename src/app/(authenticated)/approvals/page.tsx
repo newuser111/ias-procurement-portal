@@ -18,8 +18,8 @@ interface PendingOrder {
 const priorityBadge: Record<string, string> = {
   LOW: "bg-ias-gray-100 text-ias-gray-500",
   NORMAL: "bg-ias-gray-100 text-ias-gray-700",
-  HIGH: "bg-orange-100 text-orange-800",
-  URGENT: "bg-red-100 text-red-800",
+  HIGH: "bg-ias-gray-100 text-orange-600",
+  URGENT: "bg-ias-gray-100 text-red-600",
 };
 
 export default function ApprovalsPage() {

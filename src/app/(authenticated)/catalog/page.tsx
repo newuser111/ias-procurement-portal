@@ -20,11 +20,11 @@ type TypeFilter = "" | "CONSUMABLE" | "RETAIL" | "BOTH";
 const typeBadge = (type: string) => {
   switch (type) {
     case "CONSUMABLE":
-      return "bg-blue-100 text-blue-700";
+      return "bg-ias-gray-100 text-blue-600";
     case "RETAIL":
-      return "bg-green-100 text-green-700";
+      return "bg-ias-gray-100 text-green-600";
     case "BOTH":
-      return "bg-purple-100 text-purple-700";
+      return "bg-ias-gray-100 text-purple-600";
     default:
       return "bg-ias-gray-100 text-ias-gray-600";
   }
