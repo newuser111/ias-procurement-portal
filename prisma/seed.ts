@@ -414,6 +414,8 @@ async function main() {
         create: { productId: product.id, locationId: location.id, minLevel: pl.min, maxLevel: pl.max, currentQty: pl.current },
       });
       parCount++;
+    } else {
+      console.warn(`  ⚠ Skipped: "${pl.productName}" at ${pl.locationCode} — product ${product ? "found" : "NOT FOUND"}, location ${location ? "found" : "NOT FOUND"}`);
     }
   }
   console.log(`✓ ${parCount} par levels seeded`);
@@ -484,6 +486,8 @@ async function main() {
         },
       });
       countNum++;
+    } else {
+      console.warn(`  ⚠ Count skipped: "${ch.productName}" at ${ch.locationCode} — product ${product ? "found" : "NOT FOUND"}, location ${location ? "found" : "NOT FOUND"}`);
     }
   }
   console.log(`✓ ${countNum} inventory count records seeded`);

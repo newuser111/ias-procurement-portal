@@ -209,7 +209,7 @@ export default function ParLevelsPage() {
   // Group by category
   const grouped = new Map<string, ParLevelItem[]>();
   const filtered = categoryFilter
-    ? parLevels.filter((pl) => pl.product.category?.name === categoryFilter)
+    ? parLevels.filter((pl) => pl.product.category?.id === categoryFilter)
     : parLevels;
 
   for (const pl of filtered) {
