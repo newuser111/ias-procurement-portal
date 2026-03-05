@@ -7,17 +7,17 @@ export async function GET(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const role = session.user.role;
-  if (role !== "ADMIN" && role !== "PURCHASER" && role !== "MANAGER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const { searchParams } = new URL(req.url);
   const locationId = searchParams.get("locationId");
   const productId = searchParams.get("productId");
   const days = parseInt(searchParams.get("days") || "90");
 
+  // Scope to user's location unless admin/purchaser
   const effectiveLocationId =
-    role === "MANAGER" ? session.user.locationId : locationId || undefined;
+    role === "ADMIN" || role === "PURCHASER"
+      ? locationId || undefined
+      : session.user.locationId || undefined;
 
   const sinceDate = new Date();
   sinceDate.setDate(sinceDate.getDate() - days);

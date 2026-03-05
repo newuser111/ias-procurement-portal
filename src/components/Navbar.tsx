@@ -35,18 +35,19 @@ export default function Navbar() {
   }, [pathname]);
 
   const mainNav = [
-    { href: "/dashboard", label: "Dashboard", show: true },
-    { href: "/catalog", label: "Catalog", show: true },
-    { href: "/orders", label: "My Orders", show: true },
-    { href: "/inventory", label: "Inventory", show: true },
-    { href: "/approvals", label: "Approvals", show: isAdmin || isManager },
+    { href: "/dashboard", label: "Dashboard", show: true, exact: false },
+    { href: "/inventory", label: "Inventory", show: true, exact: true },
+    { href: "/inventory/count", label: "Count", show: true, exact: false },
+    { href: "/catalog", label: "Catalog", show: true, exact: false },
+    { href: "/orders", label: "Orders", show: true, exact: false },
+    { href: "/approvals", label: "Approvals", show: isAdmin || isManager, exact: false },
   ];
 
   const adminNav = [
     { href: "/admin/orders", label: "All Orders", show: isAdmin || isPurchaser },
     { href: "/admin/vendors", label: "Vendors", show: isAdmin || isPurchaser },
     { href: "/admin/products", label: "Products", show: isAdmin || isPurchaser },
-    { href: "/admin/inventory", label: "Inventory Mgmt", show: isAdmin || isPurchaser },
+    { href: "/admin/inventory", label: "Analytics", show: isAdmin || isPurchaser },
     { href: "/admin/reports", label: "Reports", show: isAdmin },
     { href: "/admin/users", label: "Users", show: isAdmin },
   ];
@@ -63,24 +64,29 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="text-ias-gold font-bold text-lg">IAS</span>
-            <span className="text-sm font-medium hidden sm:inline">Procurement</span>
+            <span className="text-sm font-medium hidden sm:inline">Inventory</span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
-            {visibleMain.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                  pathname.startsWith(item.href)
-                    ? "bg-white/15 text-ias-gold"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {visibleMain.map((item) => {
+              const isActive = item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/15 text-ias-gold"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
 
             {/* Admin Dropdown */}
             {visibleAdmin.length > 0 && (
@@ -159,19 +165,24 @@ export default function Navbar() {
         {/* Mobile Nav — shows all items flat */}
         {mobileOpen && (
           <div className="md:hidden pb-3 border-t border-white/10 mt-1 pt-2 space-y-1">
-            {visibleMain.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block px-3 py-2 rounded text-sm ${
-                  pathname.startsWith(item.href)
-                    ? "bg-white/15 text-ias-gold"
-                    : "text-white/80 hover:bg-white/10"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {visibleMain.map((item) => {
+              const isActive = item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block px-3 py-2 rounded text-sm ${
+                    isActive
+                      ? "bg-white/15 text-ias-gold"
+                      : "text-white/80 hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             {visibleAdmin.length > 0 && (
               <>
                 <div className="px-3 pt-2 pb-1 text-xs text-white/40 font-medium uppercase tracking-wider">

@@ -7,17 +7,16 @@ export async function GET(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const role = session.user.role;
-  if (role !== "ADMIN" && role !== "PURCHASER" && role !== "MANAGER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const { searchParams } = new URL(req.url);
   const locationId = searchParams.get("locationId");
   const vendorId = searchParams.get("vendorId");
 
-  // For managers, scope to their location
+  // Scope to user's location unless admin/purchaser
   const effectiveLocationId =
-    role === "MANAGER" ? session.user.locationId : locationId || undefined;
+    role === "ADMIN" || role === "PURCHASER"
+      ? locationId || undefined
+      : session.user.locationId || undefined;
 
   const where: Record<string, unknown> = {};
   if (effectiveLocationId) where.locationId = effectiveLocationId;
