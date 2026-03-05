@@ -13,7 +13,9 @@ export async function GET() {
   // Scope par levels to user's location unless admin/purchaser
   const plWhere = locationId && role !== "ADMIN" && role !== "PURCHASER" ? { locationId } : {};
 
-  const [parLevels, recentCountSessions, myOrders, pendingApprovalsCount] = await Promise.all([
+  const sessionWhere = locationId && role !== "ADMIN" && role !== "PURCHASER" ? { locationId } : {};
+
+  const [parLevels, recentCountSessions, allCountSessions, myOrders, pendingApprovalsCount] = await Promise.all([
     // All par levels for inventory stats
     prisma.parLevel.findMany({
       where: plWhere,
@@ -23,9 +25,9 @@ export async function GET() {
       },
     }),
 
-    // Recent count sessions
+    // Recent count sessions (for display)
     prisma.inventoryCountSession.findMany({
-      where: locationId && role !== "ADMIN" && role !== "PURCHASER" ? { locationId } : {},
+      where: sessionWhere,
       include: {
         location: { select: { name: true, code: true } },
         countedBy: { select: { name: true } },
@@ -33,6 +35,14 @@ export async function GET() {
       },
       orderBy: { startedAt: "desc" },
       take: 5,
+    }),
+
+    // All count sessions (for last-counted-per-location calculation)
+    prisma.inventoryCountSession.findMany({
+      where: sessionWhere,
+      select: { locationId: true, startedAt: true },
+      orderBy: { startedAt: "desc" },
+      distinct: ["locationId"],
     }),
 
     // Recent orders (secondary, keep small)
@@ -76,7 +86,16 @@ export async function GET() {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const locationMap = new Map<string, { id: string; name: string; code: string; lastCounted: Date | null; total: number }>();
+  // Build last-counted-per-location from count sessions
+  const lastCountedByLocation = new Map<string, Date>();
+  for (const cs of allCountSessions) {
+    if (!lastCountedByLocation.has(cs.locationId)) {
+      lastCountedByLocation.set(cs.locationId, cs.startedAt);
+    }
+  }
+
+  // Build location map from par levels
+  const locationMap = new Map<string, { id: string; name: string; code: string; total: number }>();
   for (const pl of parLevels) {
     const loc = locationMap.get(pl.location.id);
     if (!loc) {
@@ -84,19 +103,18 @@ export async function GET() {
         id: pl.location.id,
         name: pl.location.name,
         code: pl.location.code,
-        lastCounted: pl.lastCounted ? new Date(pl.lastCounted) : null,
         total: 1,
       });
     } else {
       loc.total++;
-      if (pl.lastCounted) {
-        const d = new Date(pl.lastCounted);
-        if (!loc.lastCounted || d > loc.lastCounted) loc.lastCounted = d;
-      }
     }
   }
 
   const locationsNeedingCount = Array.from(locationMap.values())
+    .map((loc) => ({
+      ...loc,
+      lastCounted: lastCountedByLocation.get(loc.id) || null,
+    }))
     .filter((loc) => !loc.lastCounted || loc.lastCounted < sevenDaysAgo)
     .sort((a, b) => {
       if (!a.lastCounted) return -1;
