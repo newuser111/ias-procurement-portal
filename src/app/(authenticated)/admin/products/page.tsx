@@ -44,7 +44,7 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-ias-charcoal">Products</h1>
-        <p className="text-ias-gray-500 text-sm mt-1">{products.length} products in catalog</p>
+        <p className="text-ias-gray-500 text-sm mt-1">{products.length} products</p>
       </div>
 
       {/* Filters */}
@@ -88,28 +88,30 @@ export default function ProductsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-ias-gray-50 border-b border-ias-gray-200">
-              <th className="text-left px-4 py-3 font-medium text-ias-gray-600">Product</th>
-              <th className="text-left px-4 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Vendor</th>
-              <th className="text-left px-4 py-3 font-medium text-ias-gray-600 hidden md:table-cell">Category</th>
-              <th className="text-right px-4 py-3 font-medium text-ias-gray-600">Price</th>
-              <th className="text-right px-4 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Unit</th>
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600">Product</th>
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Vendor</th>
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden md:table-cell">Category</th>
+              <th className="text-right px-5 py-3 font-medium text-ias-gray-600">Price</th>
+              <th className="text-right px-5 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Unit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-ias-gray-100">
             {products.map((p) => (
               <tr key={p.id} className="hover:bg-ias-gray-50">
-                <td className="px-4 py-3">
-                  <div className="font-medium">{p.name}</div>
+                <td className="px-5 py-3">
+                  <div className="font-medium text-ias-charcoal">{p.name}</div>
                   {p.sku && <div className="text-xs text-ias-gray-400">SKU: {p.sku}</div>}
                 </td>
-                <td className="px-4 py-3 text-ias-gray-600 hidden sm:table-cell">{p.vendor.name}</td>
-                <td className="px-4 py-3 hidden md:table-cell">
-                  {p.category && (
+                <td className="px-5 py-3 text-ias-gray-600 hidden sm:table-cell">{p.vendor.name}</td>
+                <td className="px-5 py-3 hidden md:table-cell">
+                  {p.category ? (
                     <span className="px-2 py-0.5 bg-ias-gray-100 rounded text-xs text-ias-gray-600">{p.category.name}</span>
+                  ) : (
+                    <span className="text-ias-gray-300">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right font-medium">${p.unitPrice.toFixed(2)}</td>
-                <td className="px-4 py-3 text-right text-ias-gray-500 hidden sm:table-cell">{p.unitOfMeasure}</td>
+                <td className="px-5 py-3 text-right font-semibold">${p.unitPrice.toFixed(2)}</td>
+                <td className="px-5 py-3 text-right text-ias-gray-500 hidden sm:table-cell">{p.unitOfMeasure}</td>
               </tr>
             ))}
           </tbody>

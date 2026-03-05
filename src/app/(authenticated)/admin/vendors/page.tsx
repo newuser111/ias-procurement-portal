@@ -41,7 +41,7 @@ export default function VendorsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-ias-charcoal">Vendors</h1>
-          <p className="text-ias-gray-500 text-sm mt-1">{vendors.length} vendors in directory</p>
+          <p className="text-ias-gray-500 text-sm mt-1">{vendors.length} vendors</p>
         </div>
       </div>
 
@@ -59,31 +59,49 @@ export default function VendorsPage() {
         />
       </div>
 
-      {/* Vendors Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((vendor) => (
-          <div key={vendor.id} className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold text-ias-charcoal">{vendor.name}</h3>
-                <span className="text-xs text-ias-gray-400 font-mono">{vendor.code}</span>
-              </div>
-              <span className={`w-2 h-2 rounded-full mt-1.5 ${vendor.active ? "bg-ias-success" : "bg-ias-gray-300"}`} />
-            </div>
-
-            <div className="mt-3 space-y-1 text-sm text-ias-gray-600">
-              {vendor.contactName && <div>{vendor.contactName}</div>}
-              {vendor.contactEmail && <div className="text-xs">{vendor.contactEmail}</div>}
-              {vendor.contactPhone && <div className="text-xs">{vendor.contactPhone}</div>}
-              {vendor.paymentTerms && <div className="text-xs text-ias-gray-400">{vendor.paymentTerms}</div>}
-            </div>
-
-            <div className="mt-3 pt-3 border-t border-ias-gray-100 flex gap-4 text-xs text-ias-gray-500">
-              <span>{vendor._count.products} products</span>
-              <span>{vendor._count.purchaseOrders} orders</span>
-            </div>
-          </div>
-        ))}
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-ias-gray-50 border-b border-ias-gray-200">
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600">Vendor</th>
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden md:table-cell">Contact</th>
+              <th className="text-center px-5 py-3 font-medium text-ias-gray-600">Products</th>
+              <th className="text-center px-5 py-3 font-medium text-ias-gray-600">Orders</th>
+              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Terms</th>
+              <th className="text-center px-5 py-3 font-medium text-ias-gray-600">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ias-gray-100">
+            {filtered.map((v) => (
+              <tr key={v.id} className="hover:bg-ias-gray-50">
+                <td className="px-5 py-3">
+                  <div className="font-medium text-ias-charcoal">{v.name}</div>
+                  <div className="text-xs text-ias-gray-400 font-mono">{v.code}</div>
+                </td>
+                <td className="px-5 py-3 hidden md:table-cell">
+                  {v.contactName ? (
+                    <div>
+                      <div className="text-ias-gray-700 text-sm">{v.contactName}</div>
+                      {v.contactEmail && <div className="text-xs text-ias-gray-400">{v.contactEmail}</div>}
+                    </div>
+                  ) : (
+                    <span className="text-ias-gray-300">—</span>
+                  )}
+                </td>
+                <td className="px-5 py-3 text-center text-ias-gray-600">{v._count.products}</td>
+                <td className="px-5 py-3 text-center text-ias-gray-600">{v._count.purchaseOrders}</td>
+                <td className="px-5 py-3 text-ias-gray-500 hidden sm:table-cell">{v.paymentTerms || "—"}</td>
+                <td className="px-5 py-3 text-center">
+                  <span className={`inline-block w-2 h-2 rounded-full ${v.active ? "bg-ias-success" : "bg-ias-gray-300"}`} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && (
+          <div className="p-8 text-center text-ias-gray-400 text-sm">No vendors found</div>
+        )}
       </div>
     </div>
   );

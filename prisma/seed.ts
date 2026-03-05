@@ -8,21 +8,22 @@ async function main() {
 
   // ── Locations ──────────────────────────────────────
   const locationData = [
-    { name: "Austin - South Lamar", code: "ATX", region: "Texas" },
-    { name: "Austin - Domain", code: "ATX-D", region: "Texas" },
-    { name: "Dallas - Uptown", code: "DAL", region: "Texas" },
-    { name: "Dallas - Park Cities", code: "DAL-PC", region: "Texas" },
+    { name: "Austin", code: "ATX", region: "Texas" },
+    { name: "Austin (South Lamar)", code: "ATX-SL", region: "Texas" },
+    { name: "Biltmore", code: "BILT", region: "Arizona" },
+    { name: "Corporate Office - Irving", code: "CORP", region: "Texas" },
+    { name: "Dallas", code: "DAL", region: "Texas" },
     { name: "Fort Worth", code: "FW", region: "Texas" },
-    { name: "Fort Worth - Alliance", code: "FW-A", region: "Texas" },
-    { name: "Houston - Montrose", code: "HOU", region: "Texas" },
-    { name: "Houston - Heights", code: "HOU-H", region: "Texas" },
-    { name: "San Antonio", code: "SA", region: "Texas" },
+    { name: "Fort Worth (Alliance)", code: "FW-A", region: "Texas" },
     { name: "Frisco", code: "FRI", region: "Texas" },
-    { name: "Rockwall", code: "RW", region: "Texas" },
-    { name: "Southlake", code: "SL", region: "Texas" },
-    { name: "Phoenix", code: "PHX", region: "Arizona" },
+    { name: "Houston", code: "HOU", region: "Texas" },
+    { name: "Plano", code: "PLN", region: "Texas" },
+    { name: "Prosper", code: "PROS", region: "Texas" },
+    { name: "San Antonio", code: "SA", region: "Texas" },
     { name: "Scottsdale", code: "SCOTT", region: "Arizona" },
-    { name: "Washington DC", code: "DC", region: "DC" },
+    { name: "The Woodlands", code: "WOOD", region: "Texas" },
+    { name: "Tyler", code: "TYL", region: "Texas" },
+    { name: "Washington D.C.", code: "DC", region: "DC" },
   ];
 
   const locations = await Promise.all(

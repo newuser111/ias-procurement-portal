@@ -13,41 +13,56 @@ interface Product {
   category: { id: string; name: string } | null;
 }
 
-interface Vendor {
-  id: string;
-  name: string;
-  code: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-}
-
 export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [vendorFilter, setVendorFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [openVendors, setOpenVendors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (vendorFilter) params.set("vendorId", vendorFilter);
-    if (categoryFilter) params.set("categoryId", categoryFilter);
-    if (search.trim()) params.set("search", search.trim());
-
-    fetch(`/api/catalog?${params}`)
+    fetch("/api/catalog")
       .then((r) => r.json())
-      .then((data) => {
-        setProducts(data.products);
-        if (data.vendors) setVendors(data.vendors);
-        if (data.categories) setCategories(data.categories);
-      })
+      .then((data) => setProducts(data.products))
       .finally(() => setLoading(false));
-  }, [vendorFilter, categoryFilter, search]);
+  }, []);
+
+  // Filter products by search
+  const filtered = products.filter((p) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.vendor.name.toLowerCase().includes(q) ||
+      (p.category?.name || "").toLowerCase().includes(q)
+    );
+  });
+
+  // Group by vendor
+  const grouped = filtered.reduce<Record<string, { vendor: { id: string; name: string; code: string }; products: Product[] }>>((acc, p) => {
+    const key = p.vendor.code;
+    if (!acc[key]) acc[key] = { vendor: p.vendor, products: [] };
+    acc[key].products.push(p);
+    return acc;
+  }, {});
+
+  const sortedVendors = Object.values(grouped).sort((a, b) => a.vendor.name.localeCompare(b.vendor.name));
+
+  function toggleVendor(code: string) {
+    setOpenVendors((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  }
+
+  function expandAll() {
+    setOpenVendors(new Set(sortedVendors.map((g) => g.vendor.code)));
+  }
+
+  function collapseAll() {
+    setOpenVendors(new Set());
+  }
 
   return (
     <div className="space-y-6">
@@ -56,7 +71,7 @@ export default function CatalogPage() {
         <div>
           <h1 className="text-2xl font-bold text-ias-charcoal">Product Catalog</h1>
           <p className="text-ias-gray-500 text-sm mt-1">
-            {products.length} products available
+            {filtered.length} products across {sortedVendors.length} vendors
           </p>
         </div>
         <Link
@@ -67,11 +82,10 @@ export default function CatalogPage() {
         </Link>
       </div>
 
-      {/* Filters */}
+      {/* Search + Controls */}
       <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="relative flex-1 w-full">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ias-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -79,66 +93,87 @@ export default function CatalogPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products..."
+              placeholder="Search products, vendors, or categories..."
               className="w-full pl-10 pr-4 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold focus:border-transparent"
             />
           </div>
-
-          {/* Vendor Filter */}
-          <select
-            value={vendorFilter}
-            onChange={(e) => setVendorFilter(e.target.value)}
-            className="px-3 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold"
-          >
-            <option value="">All Vendors</option>
-            {vendors.map((v) => (
-              <option key={v.id} value={v.id}>{v.name}</option>
-            ))}
-          </select>
-
-          {/* Category Filter */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold"
-          >
-            <option value="">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          <div className="flex gap-2 text-xs">
+            <button onClick={expandAll} className="px-3 py-1.5 text-ias-gray-600 hover:text-ias-charcoal border border-ias-gray-300 rounded-lg">
+              Expand All
+            </button>
+            <button onClick={collapseAll} className="px-3 py-1.5 text-ias-gray-600 hover:text-ias-charcoal border border-ias-gray-300 rounded-lg">
+              Collapse All
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Products Grid */}
+      {/* Accordion List */}
       {loading ? (
         <div className="text-center text-ias-gray-400 py-12">Loading catalog...</div>
-      ) : products.length === 0 ? (
+      ) : sortedVendors.length === 0 ? (
         <div className="text-center text-ias-gray-400 py-12">No products found</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4 hover:border-ias-gold transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm text-ias-charcoal truncate">{product.name}</h3>
-                  <p className="text-xs text-ias-gray-500 mt-0.5">{product.vendor.name}</p>
-                  {product.category && (
-                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-ias-gray-100 text-ias-gray-600 rounded text-xs">
-                      {product.category.name}
-                    </span>
-                  )}
-                </div>
-                <div className="text-right ml-3">
-                  <div className="font-semibold text-ias-charcoal">${product.unitPrice}</div>
-                  <div className="text-xs text-ias-gray-400">/{product.unitOfMeasure}</div>
-                </div>
+        <div className="space-y-2">
+          {sortedVendors.map(({ vendor, products: vendorProducts }) => {
+            const isOpen = openVendors.has(vendor.code);
+            const byCategory = vendorProducts.reduce<Record<string, Product[]>>((acc, p) => {
+              const cat = p.category?.name || "Uncategorized";
+              if (!acc[cat]) acc[cat] = [];
+              acc[cat].push(p);
+              return acc;
+            }, {});
+
+            return (
+              <div key={vendor.code} className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
+                <button
+                  onClick={() => toggleVendor(vendor.code)}
+                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-ias-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-ias-gray-400 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div className="text-left">
+                      <div className="font-semibold text-ias-charcoal">{vendor.name}</div>
+                      <div className="text-xs text-ias-gray-400 mt-0.5">{vendor.code}</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-ias-gray-500 bg-ias-gray-100 px-2.5 py-1 rounded-full">
+                    {vendorProducts.length} product{vendorProducts.length !== 1 ? "s" : ""}
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-ias-gray-200">
+                    {Object.entries(byCategory).sort(([a], [b]) => a.localeCompare(b)).map(([category, catProducts]) => (
+                      <div key={category}>
+                        <div className="px-5 py-2 bg-ias-gray-50 text-xs font-medium text-ias-gray-500 uppercase tracking-wider">
+                          {category}
+                        </div>
+                        <table className="w-full text-sm">
+                          <tbody className="divide-y divide-ias-gray-100">
+                            {catProducts.sort((a, b) => a.name.localeCompare(b.name)).map((p) => (
+                              <tr key={p.id} className="hover:bg-ias-gray-50">
+                                <td className="pl-12 pr-4 py-2.5 font-medium text-ias-charcoal">{p.name}</td>
+                                <td className="px-4 py-2.5 text-right text-ias-gray-600 whitespace-nowrap">
+                                  <span className="font-semibold">${p.unitPrice.toFixed(2)}</span>
+                                  <span className="text-ias-gray-400 text-xs ml-1">/ {p.unitOfMeasure}</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
