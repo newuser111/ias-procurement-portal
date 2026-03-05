@@ -203,7 +203,7 @@ async function main() {
   const pw = await hash("password123", 12);
 
   const userData = [
-    { email: "admin@itsasecret.com", name: "Portal Admin", role: Role.ADMIN, locationCode: null },
+    { email: "clay@secretmedspa.com", name: "Clay Magnuson", role: Role.ADMIN, locationCode: null },
     { email: "purchasing@secretmedspa.com", name: "Garrett Gay", role: Role.PURCHASER, locationCode: null },
     { email: "manager.atx@itsasecret.com", name: "ATX Manager", role: Role.MANAGER, locationCode: "ATX" },
     { email: "manager.dal@itsasecret.com", name: "DAL Manager", role: Role.MANAGER, locationCode: "DAL" },
@@ -233,7 +233,7 @@ async function main() {
   console.log(`✓ ${users.length} users seeded`);
 
   // ── Sample Purchase Orders ─────────────────────────
-  const admin = users.find((u) => u.email === "admin@itsasecret.com")!;
+  const admin = users.find((u) => u.email === "clay@secretmedspa.com")!;
   const purchaser = users.find((u) => u.email === "purchasing@secretmedspa.com")!;
   const emp1 = users.find((u) => u.email === "employee1@itsasecret.com")!;
   const emp2 = users.find((u) => u.email === "employee2@itsasecret.com")!;
