@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MANAGER
+  PURCHASER
+  EMPLOYEE
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ORDERED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ApprovalAction {
+  APPROVED
+  REJECTED
+}
+
+// ── Users & Locations ──────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(EMPLOYEE)
+  locationId   String?
+  location     Location? @relation(fields: [locationId], references: [id])
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+  approvals      Approval[]
+
+  @@index([email])
+  @@index([locationId])
+  @@index([role])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  region    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  purchaseOrders PurchaseOrder[]
+  budgets        Budget[]
+  parLevels      ParLevel[]
+}
+
+// ── Vendors ────────────────────────────────────────────
+
+model Vendor {
+  id            String   @id @default(cuid())
+  name          String
+  code          String   @unique
+  contactName   String?
+  contactEmail  String?
+  contactPhone  String?
+  website       String?
+  accountNumber String?
+  paymentTerms  String?
+  notes         String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  products       Product[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([name])
+}
+
+// ── Products & Categories ──────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+  budgets  Budget[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  sku           String?
+  description   String?
+  vendorId      String
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  unitPrice     Float    @default(0)
+  unitOfMeasure String   @default("each")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orderItems OrderItem[]
+  parLevels  ParLevel[]
+
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([name])
+}
+
+model ParLevel {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  minLevel   Int      @default(0)
+  maxLevel   Int?
+  currentQty Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([productId, locationId])
+}
+
+// ── Purchase Orders ────────────────────────────────────
+
+model PurchaseOrder {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  requestedById String
+  requestedBy   User        @relation(fields: [requestedById], references: [id])
+  vendorId      String
+  vendor        Vendor      @relation(fields: [vendorId], references: [id])
+  status        OrderStatus @default(DRAFT)
+  priority      Priority    @default(NORMAL)
+  notes         String?
+  totalAmount   Float       @default(0)
+  requestedAt   DateTime    @default(now())
+  approvedAt    DateTime?
+  orderedAt     DateTime?
+  shippedAt     DateTime?
+  deliveredAt   DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  items     OrderItem[]
+  approvals Approval[]
+
+  @@index([locationId])
+  @@index([requestedById])
+  @@index([vendorId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?      @relation(fields: [productId], references: [id])
+  name            String
+  quantity        Int           @default(1)
+  unitPrice       Float         @default(0)
+  totalPrice      Float         @default(0)
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  @@index([purchaseOrderId])
+}
+
+// ── Approvals ──────────────────────────────────────────
+
+model Approval {
+  id              String         @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder  @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  action          ApprovalAction
+  notes           String?
+  createdAt       DateTime       @default(now())
+
+  @@index([purchaseOrderId])
+  @@index([userId])
+}
+
+// ── Budgets ────────────────────────────────────────────
+
+model Budget {
+  id           String   @id @default(cuid())
+  locationId   String
+  location     Location @relation(fields: [locationId], references: [id])
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id])
+  monthlyLimit Float
+  currentSpend Float    @default(0)
+  month        Int
+  year         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([locationId, categoryId, month, year])
+  @@index([locationId])
+}
