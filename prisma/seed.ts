@@ -6,6 +6,15 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding IAS Procurement Portal...\n");
 
+  // ── Cleanup (safe to re-run) ─────────────────────
+  await prisma.inventoryCount.deleteMany();
+  await prisma.inventoryCountSession.deleteMany();
+  await prisma.approval.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.purchaseOrder.deleteMany();
+  await prisma.parLevel.deleteMany();
+  console.log("✓ Cleaned existing seed data");
+
   // ── Locations ──────────────────────────────────────
   const locationData = [
     { name: "Austin", code: "ATX", region: "Texas" },
