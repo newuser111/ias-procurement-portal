@@ -38,6 +38,11 @@ enum ApprovalAction {
   REJECTED
 }
 
+enum CountSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 // ── Users & Locations ──────────────────────────────────
 
 model User {
@@ -54,6 +59,8 @@ model User {
 
   purchaseOrders PurchaseOrder[]
   approvals      Approval[]
+  inventoryCounts InventoryCount[]
+  countSessions   InventoryCountSession[] @relation("countSessions")
 
   @@index([email])
   @@index([locationId])
@@ -69,10 +76,12 @@ model Location {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  purchaseOrders PurchaseOrder[]
-  budgets        Budget[]
-  parLevels      ParLevel[]
+  users                  User[]
+  purchaseOrders         PurchaseOrder[]
+  budgets                Budget[]
+  parLevels              ParLevel[]
+  inventoryCounts        InventoryCount[]
+  inventoryCountSessions InventoryCountSession[]
 }
 
 // ── Vendors ────────────────────────────────────────────
@@ -126,8 +135,9 @@ model Product {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  orderItems OrderItem[]
-  parLevels  ParLevel[]
+  orderItems      OrderItem[]
+  parLevels       ParLevel[]
+  inventoryCounts InventoryCount[]
 
   @@index([vendorId])
   @@index([categoryId])
@@ -147,6 +157,48 @@ model ParLevel {
   updatedAt  DateTime @updatedAt
 
   @@unique([productId, locationId])
+}
+
+// ── Inventory Tracking ────────────────────────────────
+
+model InventoryCountSession {
+  id          String             @id @default(cuid())
+  locationId  String
+  location    Location           @relation(fields: [locationId], references: [id])
+  countedById String
+  countedBy   User               @relation("countSessions", fields: [countedById], references: [id])
+  status      CountSessionStatus @default(IN_PROGRESS)
+  startedAt   DateTime           @default(now())
+  completedAt DateTime?
+  notes       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  counts InventoryCount[]
+
+  @@index([locationId])
+  @@index([countedById])
+}
+
+model InventoryCount {
+  id          String                 @id @default(cuid())
+  productId   String
+  product     Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location               @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity    Int
+  countedById String
+  countedBy   User                   @relation(fields: [countedById], references: [id])
+  countedAt   DateTime               @default(now())
+  sessionId   String?
+  session     InventoryCountSession? @relation(fields: [sessionId], references: [id])
+  notes       String?
+  createdAt   DateTime               @default(now())
+
+  @@index([productId, locationId])
+  @@index([locationId, countedAt])
+  @@index([countedById])
+  @@index([sessionId])
 }
 
 // ── Purchase Orders ────────────────────────────────────

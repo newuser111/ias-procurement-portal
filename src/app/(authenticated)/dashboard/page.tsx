@@ -4,6 +4,16 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+interface InventoryAlert {
+  productName: string;
+  vendorName: string;
+  locationName: string;
+  locationCode: string;
+  currentQty: number;
+  minLevel: number;
+  deficit: number;
+}
+
 interface DashboardData {
   myOrders: {
     id: string;
@@ -21,6 +31,8 @@ interface DashboardData {
     ordered: number;
     delivered: number;
   };
+  inventoryAlerts: InventoryAlert[];
+  belowParCount: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -123,6 +135,29 @@ export default function DashboardPage() {
         </Link>
       )}
 
+      {/* Inventory Alerts */}
+      {(data?.belowParCount ?? 0) > 0 && (
+        <Link
+          href="/inventory"
+          className="block bg-red-50 border border-red-200 rounded-xl p-4 hover:bg-red-100 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="font-semibold text-red-800">
+                {data?.belowParCount} item{data?.belowParCount !== 1 ? "s" : ""} below par level
+              </span>
+              <p className="text-sm text-red-700 mt-0.5">
+                {data?.inventoryAlerts?.slice(0, 3).map((a: InventoryAlert) => a.productName).join(", ")}
+                {(data?.belowParCount ?? 0) > 3 ? ` and ${(data?.belowParCount ?? 0) - 3} more` : ""}
+              </p>
+            </div>
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      )}
+
       {/* Recent Orders */}
       <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
         <div className="p-4 border-b border-ias-gray-200 flex items-center justify-between">
@@ -165,7 +200,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Link
           href="/catalog"
           className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold transition-colors"
@@ -179,6 +214,13 @@ export default function DashboardPage() {
         >
           <div className="text-lg font-semibold text-ias-charcoal">My Orders</div>
           <p className="text-xs text-ias-gray-500 mt-1">Track your purchase orders</p>
+        </Link>
+        <Link
+          href="/inventory/count"
+          className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold transition-colors"
+        >
+          <div className="text-lg font-semibold text-ias-charcoal">Count Inventory</div>
+          <p className="text-xs text-ias-gray-500 mt-1">Log current stock levels</p>
         </Link>
         {(isAdmin || isPurchaser) && (
           <Link

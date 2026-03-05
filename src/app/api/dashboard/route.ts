@@ -40,9 +40,34 @@ export async function GET() {
     prisma.purchaseOrder.count({ where: { ...where, status: "DELIVERED" } }),
   ]);
 
+  // Inventory alerts — items below par level
+  const parLevels = await prisma.parLevel.findMany({
+    where: locationId && role !== "ADMIN" ? { locationId } : {},
+    include: {
+      product: { select: { name: true, vendor: { select: { name: true } } } },
+      location: { select: { name: true, code: true } },
+    },
+  });
+  const inventoryAlerts = parLevels
+    .filter((pl) => pl.currentQty < pl.minLevel)
+    .sort((a, b) => (a.currentQty - a.minLevel) - (b.currentQty - b.minLevel))
+    .slice(0, 10)
+    .map((pl) => ({
+      productName: pl.product.name,
+      vendorName: pl.product.vendor.name,
+      locationName: pl.location.name,
+      locationCode: pl.location.code,
+      currentQty: pl.currentQty,
+      minLevel: pl.minLevel,
+      deficit: pl.minLevel - pl.currentQty,
+    }));
+  const belowParCount = parLevels.filter((pl) => pl.currentQty < pl.minLevel).length;
+
   return NextResponse.json({
     myOrders,
     pendingApprovals,
     stats: { draft, pending, approved, ordered, delivered },
+    inventoryAlerts,
+    belowParCount,
   });
 }

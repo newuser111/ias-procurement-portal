@@ -19,10 +19,12 @@ export default function Navbar() {
     { href: "/dashboard", label: "Dashboard", show: true },
     { href: "/catalog", label: "Catalog", show: true },
     { href: "/orders", label: "My Orders", show: true },
+    { href: "/inventory", label: "Inventory", show: true },
     { href: "/approvals", label: "Approvals", show: isAdmin || isManager },
     { href: "/admin/orders", label: "All Orders", show: isAdmin || isPurchaser },
     { href: "/admin/vendors", label: "Vendors", show: isAdmin || isPurchaser },
     { href: "/admin/products", label: "Products", show: isAdmin || isPurchaser },
+    { href: "/admin/inventory", label: "Inv. Mgmt", show: isAdmin || isPurchaser },
     { href: "/admin/reports", label: "Reports", show: isAdmin },
     { href: "/admin/users", label: "Users", show: isAdmin },
   ];

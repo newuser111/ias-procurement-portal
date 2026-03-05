@@ -367,6 +367,127 @@ async function main() {
   });
 
   console.log(`✓ 5 sample purchase orders seeded`);
+
+  // ── Par Levels ─────────────────────────────────────
+  const parLevelData = [
+    // ATX - Austin
+    { productName: "Botox 100U", locationCode: "ATX", min: 10, max: 20, current: 8 },
+    { productName: "Botox 200U", locationCode: "ATX", min: 5, max: 10, current: 6 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", min: 8, max: 15, current: 3 },
+    { productName: "Dysport 300U", locationCode: "ATX", min: 6, max: 12, current: 7 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", min: 10, max: 25, current: 4 },
+    { productName: "Alcohol Prep Pads", locationCode: "ATX", min: 5, max: 10, current: 6 },
+    { productName: "Gauze Pads", locationCode: "ATX", min: 5, max: 10, current: 2 },
+    { productName: "BD Syringes", locationCode: "ATX", min: 3, max: 8, current: 5 },
+    { productName: "Needles 30G", locationCode: "ATX", min: 3, max: 8, current: 4 },
+    { productName: "HydraFacial Hydra-Medic Tips", locationCode: "ATX", min: 2, max: 5, current: 3 },
+    { productName: "BLT Numbing Cream 30g", locationCode: "ATX", min: 10, max: 20, current: 12 },
+    { productName: "Alastin Regenerating", locationCode: "ATX", min: 4, max: 8, current: 1 },
+
+    // DAL - Dallas
+    { productName: "Botox 100U", locationCode: "DAL", min: 12, max: 24, current: 15 },
+    { productName: "Juvederm Ultra XC", locationCode: "DAL", min: 6, max: 12, current: 8 },
+    { productName: "Dysport 300U", locationCode: "DAL", min: 8, max: 16, current: 2 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "DAL", min: 12, max: 30, current: 14 },
+    { productName: "Sharps Container", locationCode: "DAL", min: 4, max: 8, current: 1 },
+    { productName: "Sculptra", locationCode: "DAL", min: 4, max: 8, current: 5 },
+    { productName: "Restylane", locationCode: "DAL", min: 6, max: 12, current: 7 },
+    { productName: "BLT Numbing Cream 30g", locationCode: "DAL", min: 8, max: 16, current: 9 },
+
+    // HOU - Houston
+    { productName: "Botox 100U", locationCode: "HOU", min: 8, max: 16, current: 10 },
+    { productName: "Restylane", locationCode: "HOU", min: 6, max: 12, current: 4 },
+    { productName: "Nitrile Gloves - Small", locationCode: "HOU", min: 8, max: 20, current: 9 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "HOU", min: 10, max: 20, current: 3 },
+    { productName: "Morpheus8 Tips", locationCode: "HOU", min: 2, max: 4, current: 1 },
+    { productName: "HydraFacial Activ-4 Serum", locationCode: "HOU", min: 4, max: 8, current: 5 },
+  ];
+
+  let parCount = 0;
+  for (const pl of parLevelData) {
+    const product = allProducts.find((p: { name: string }) => p.name.includes(pl.productName));
+    const location = locations.find((l) => l.code === pl.locationCode);
+    if (product && location) {
+      await prisma.parLevel.upsert({
+        where: { productId_locationId: { productId: product.id, locationId: location.id } },
+        update: { minLevel: pl.min, maxLevel: pl.max, currentQty: pl.current },
+        create: { productId: product.id, locationId: location.id, minLevel: pl.min, maxLevel: pl.max, currentQty: pl.current },
+      });
+      parCount++;
+    }
+  }
+  console.log(`✓ ${parCount} par levels seeded`);
+
+  // ── Historical Inventory Counts ────────────────────
+  // Weekly counts for key products at ATX to demonstrate burn rates
+  const countHistory = [
+    // Botox 100U at ATX — steady decline
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 6, qty: 18 },
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 5, qty: 16 },
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 4, qty: 14 },
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 3, qty: 12 },
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 2, qty: 11 },
+    { productName: "Botox 100U", locationCode: "ATX", weeksAgo: 1, qty: 8 },
+
+    // Nitrile Gloves Medium at ATX — high burn rate
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 6, qty: 20 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 5, qty: 17 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 4, qty: 12 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 3, qty: 9 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 2, qty: 6 },
+    { productName: "Nitrile Gloves - Medium", locationCode: "ATX", weeksAgo: 1, qty: 4 },
+
+    // Juvederm Ultra XC at ATX — moderate decline
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 6, qty: 10 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 5, qty: 9 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 4, qty: 7 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 3, qty: 6 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 2, qty: 5 },
+    { productName: "Juvederm Ultra XC", locationCode: "ATX", weeksAgo: 1, qty: 3 },
+
+    // Dysport at DAL — sharp decline
+    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 5, qty: 14 },
+    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 4, qty: 10 },
+    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 3, qty: 7 },
+    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 2, qty: 4 },
+    { productName: "Dysport 300U", locationCode: "DAL", weeksAgo: 1, qty: 2 },
+
+    // Botox 100U at DAL — stable
+    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 4, qty: 20 },
+    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 3, qty: 18 },
+    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 2, qty: 17 },
+    { productName: "Botox 100U", locationCode: "DAL", weeksAgo: 1, qty: 15 },
+
+    // Restylane at HOU — declining
+    { productName: "Restylane", locationCode: "HOU", weeksAgo: 5, qty: 10 },
+    { productName: "Restylane", locationCode: "HOU", weeksAgo: 4, qty: 8 },
+    { productName: "Restylane", locationCode: "HOU", weeksAgo: 3, qty: 7 },
+    { productName: "Restylane", locationCode: "HOU", weeksAgo: 2, qty: 5 },
+    { productName: "Restylane", locationCode: "HOU", weeksAgo: 1, qty: 4 },
+  ];
+
+  let countNum = 0;
+  for (const ch of countHistory) {
+    const product = allProducts.find((p: { name: string }) => p.name.includes(ch.productName));
+    const location = locations.find((l) => l.code === ch.locationCode);
+    if (product && location) {
+      const countDate = new Date();
+      countDate.setDate(countDate.getDate() - ch.weeksAgo * 7);
+
+      await prisma.inventoryCount.create({
+        data: {
+          productId: product.id,
+          locationId: location.id,
+          quantity: ch.qty,
+          countedById: emp1.id,
+          countedAt: countDate,
+        },
+      });
+      countNum++;
+    }
+  }
+  console.log(`✓ ${countNum} inventory count records seeded`);
+
   console.log("\nSeed complete!");
 }
 
