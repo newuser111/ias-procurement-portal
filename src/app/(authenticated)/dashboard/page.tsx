@@ -121,28 +121,29 @@ export default function DashboardPage() {
           <div className="text-2xl font-bold text-ias-charcoal">{data?.totalTracked ?? 0}</div>
           <div className="text-xs text-ias-gray-500 mt-1">Products Tracked</div>
         </div>
-        <div className={`rounded-xl p-4 shadow-sm border ${
-          (data?.belowParCount ?? 0) > 0 ? "bg-red-50 border-red-200" : "bg-white border-ias-gray-200"
-        }`}>
-          <div className={`text-2xl font-bold ${(data?.belowParCount ?? 0) > 0 ? "text-red-700" : "text-ias-charcoal"}`}>
-            {data?.belowParCount ?? 0}
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
+          <div className="flex items-center gap-2">
+            {(data?.belowParCount ?? 0) > 0 && <span className="w-2 h-2 rounded-full bg-amber-400" />}
+            <span className={`text-2xl font-bold ${(data?.belowParCount ?? 0) > 0 ? "text-amber-600" : "text-ias-charcoal"}`}>
+              {data?.belowParCount ?? 0}
+            </span>
           </div>
-          <div className={`text-xs mt-1 ${(data?.belowParCount ?? 0) > 0 ? "text-red-600" : "text-ias-gray-500"}`}>
-            Below Par
-          </div>
-        </div>
-        <div className={`rounded-xl p-4 shadow-sm border ${
-          (data?.outOfStockCount ?? 0) > 0 ? "bg-red-50 border-red-200" : "bg-white border-ias-gray-200"
-        }`}>
-          <div className={`text-2xl font-bold ${(data?.outOfStockCount ?? 0) > 0 ? "text-red-700" : "text-ias-charcoal"}`}>
-            {data?.outOfStockCount ?? 0}
-          </div>
-          <div className={`text-xs mt-1 ${(data?.outOfStockCount ?? 0) > 0 ? "text-red-600" : "text-ias-gray-500"}`}>
-            Out of Stock
-          </div>
+          <div className="text-xs text-ias-gray-500 mt-1">Below Par</div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
-          <div className="text-2xl font-bold text-green-600">{data?.okCount ?? 0}</div>
+          <div className="flex items-center gap-2">
+            {(data?.outOfStockCount ?? 0) > 0 && <span className="w-2 h-2 rounded-full bg-red-400" />}
+            <span className={`text-2xl font-bold ${(data?.outOfStockCount ?? 0) > 0 ? "text-red-600" : "text-ias-charcoal"}`}>
+              {data?.outOfStockCount ?? 0}
+            </span>
+          </div>
+          <div className="text-xs text-ias-gray-500 mt-1">Out of Stock</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-2xl font-bold text-ias-charcoal">{data?.okCount ?? 0}</span>
+          </div>
           <div className="text-xs text-ias-gray-500 mt-1">At / Above Par</div>
         </div>
       </div>
@@ -151,16 +152,19 @@ export default function DashboardPage() {
       {(isAdmin || isManager) && (data?.pendingApprovals ?? 0) > 0 && (
         <Link
           href="/approvals"
-          className="block bg-yellow-50 border border-yellow-200 rounded-xl p-4 hover:bg-yellow-100 transition-colors"
+          className="block bg-white border border-ias-gray-200 rounded-xl p-4 hover:border-ias-gold transition-colors shadow-sm"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <span className="font-semibold text-yellow-800">
-                {data?.pendingApprovals} order{data?.pendingApprovals !== 1 ? "s" : ""} awaiting your approval
-              </span>
-              <p className="text-sm text-yellow-700 mt-0.5">Click to review and approve</p>
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-yellow-400" />
+              <div>
+                <span className="font-semibold text-ias-charcoal">
+                  {data?.pendingApprovals} order{data?.pendingApprovals !== 1 ? "s" : ""} awaiting approval
+                </span>
+                <p className="text-xs text-ias-gray-500 mt-0.5">Click to review</p>
+              </div>
             </div>
-            <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-ias-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
@@ -169,71 +173,75 @@ export default function DashboardPage() {
 
       {/* Inventory Alerts */}
       {(data?.inventoryAlerts?.length ?? 0) > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-red-800 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              {data?.belowParCount} item{data?.belowParCount !== 1 ? "s" : ""} below par level
+        <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
+          <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
+            <h2 className="font-semibold text-ias-charcoal flex items-center gap-2 text-sm">
+              <span className="w-2 h-2 rounded-full bg-red-400" />
+              {data?.belowParCount} item{data?.belowParCount !== 1 ? "s" : ""} below par
             </h2>
-            <Link href="/inventory" className="text-sm text-red-700 hover:text-red-900 font-medium">
+            <Link href="/inventory" className="text-xs text-ias-gray-500 hover:text-ias-charcoal font-medium">
               View All →
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="divide-y divide-ias-gray-100">
             {data?.inventoryAlerts.slice(0, 5).map((a, i) => (
-              <div key={i} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2 text-sm">
-                <div>
-                  <span className="font-medium text-red-900">{a.productName}</span>
-                  <span className="text-red-600 ml-2 text-xs">{a.vendorName}</span>
-                  <span className="text-red-500 ml-2 text-xs">@ {a.locationName}</span>
+              <div key={i} className="flex items-center justify-between px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <span className="font-medium text-ias-charcoal">{a.productName}</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-ias-gray-400">{a.vendorName}</span>
+                    <span className="text-ias-gray-300">·</span>
+                    <span className="text-xs text-ias-gray-400">{a.locationName}</span>
+                  </div>
                 </div>
-                <div className="text-right whitespace-nowrap">
-                  <span className={`font-bold ${a.currentQty === 0 ? "text-red-700" : "text-red-600"}`}>
+                <div className="text-right whitespace-nowrap flex items-center gap-1.5">
+                  <span className={`text-sm font-semibold ${a.currentQty === 0 ? "text-red-600" : "text-amber-600"}`}>
                     {a.currentQty}
                   </span>
-                  <span className="text-red-400 mx-1">/</span>
-                  <span className="text-red-500">{a.minLevel} min</span>
+                  <span className="text-ias-gray-300">/</span>
+                  <span className="text-xs text-ias-gray-500">{a.minLevel}</span>
                 </div>
               </div>
             ))}
-            {(data?.belowParCount ?? 0) > 5 && (
-              <Link href="/inventory" className="block text-xs text-red-600 text-center pt-1 hover:text-red-800">
-                + {(data?.belowParCount ?? 0) - 5} more items below par
-              </Link>
-            )}
           </div>
+          {(data?.belowParCount ?? 0) > 5 && (
+            <Link href="/inventory" className="block text-xs text-ias-gray-500 text-center py-3 border-t border-ias-gray-100 hover:text-ias-charcoal">
+              + {(data?.belowParCount ?? 0) - 5} more
+            </Link>
+          )}
         </div>
       )}
 
       {/* Locations Needing Count */}
       {(data?.locationsNeedingCount?.length ?? 0) > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <h2 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {data?.locationsNeedingCount.length} location{data?.locationsNeedingCount.length !== 1 ? "s" : ""} due for count
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
+          <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
+            <h2 className="font-semibold text-ias-charcoal flex items-center gap-2 text-sm">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              {data?.locationsNeedingCount.length} location{data?.locationsNeedingCount.length !== 1 ? "s" : ""} due for count
+            </h2>
+          </div>
+          <div className="divide-y divide-ias-gray-100">
             {data?.locationsNeedingCount.map((loc) => (
               <Link
                 key={loc.id}
                 href="/inventory/count"
-                className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2 text-sm hover:bg-white transition-colors"
+                className="flex items-center justify-between px-4 py-3 hover:bg-ias-gray-50 transition-colors"
               >
                 <div>
-                  <span className="font-medium text-amber-900">{loc.name}</span>
-                  <div className="text-xs text-amber-600 mt-0.5">
+                  <span className="font-medium text-sm text-ias-charcoal">{loc.name}</span>
+                  <div className="text-xs text-ias-gray-400 mt-0.5">
                     {loc.lastCounted
-                      ? `Last: ${new Date(loc.lastCounted).toLocaleDateString()}`
+                      ? `Last counted ${new Date(loc.lastCounted).toLocaleDateString()}`
                       : "Never counted"}
                   </div>
                 </div>
-                <span className="text-xs text-amber-500 bg-amber-100 px-2 py-0.5 rounded-full">
-                  {loc.productCount} items
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-ias-gray-500">{loc.productCount} items</span>
+                  <svg className="w-4 h-4 text-ias-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </Link>
             ))}
           </div>
@@ -243,30 +251,26 @@ export default function DashboardPage() {
       {/* Recent Count Sessions */}
       {(data?.recentCounts?.length ?? 0) > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
-          <div className="p-4 border-b border-ias-gray-200 flex items-center justify-between">
-            <h2 className="font-semibold text-ias-charcoal">Recent Counts</h2>
-            <Link href="/inventory?tab=history" className="text-sm text-ias-blue hover:underline">
+          <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
+            <h2 className="font-semibold text-ias-charcoal text-sm">Recent Counts</h2>
+            <Link href="/inventory?tab=history" className="text-xs text-ias-gray-500 hover:text-ias-charcoal font-medium">
               View All
             </Link>
           </div>
           <div className="divide-y divide-ias-gray-100">
             {data?.recentCounts.map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-4">
+              <div key={c.id} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <div className="font-medium text-sm text-ias-charcoal">{c.locationName}</div>
-                  <div className="text-xs text-ias-gray-500">
+                  <div className="text-xs text-ias-gray-400">
                     {new Date(c.startedAt).toLocaleDateString()} · {c.countedBy}
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-medium text-ias-charcoal">{c.productsCounted} products</span>
-                  <div className="mt-0.5">
-                    <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                      c.status === "COMPLETED" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                    }`}>
-                      {c.status === "COMPLETED" ? "Completed" : "In Progress"}
-                    </span>
-                  </div>
+                <div className="text-right flex items-center gap-3">
+                  <span className="text-sm text-ias-gray-600">{c.productsCounted} products</span>
+                  <span className={`inline-block w-2 h-2 rounded-full ${
+                    c.status === "COMPLETED" ? "bg-green-400" : "bg-amber-400"
+                  }`} />
                 </div>
               </div>
             ))}
@@ -278,16 +282,16 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Link
           href="/inventory/count"
-          className="bg-ias-gold/10 border-2 border-ias-gold rounded-xl p-4 hover:bg-ias-gold/20 transition-colors"
+          className="bg-white border-2 border-ias-gold rounded-xl p-4 hover:bg-ias-gold/5 transition-colors"
         >
-          <div className="text-lg font-semibold text-ias-charcoal">Count Inventory</div>
+          <div className="font-semibold text-ias-charcoal">Count Inventory</div>
           <p className="text-xs text-ias-gray-500 mt-1">Log current stock levels</p>
         </Link>
         <Link
           href="/inventory?tab=reorder"
           className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold transition-colors"
         >
-          <div className="text-lg font-semibold text-ias-charcoal">Reorder List</div>
+          <div className="font-semibold text-ias-charcoal">Reorder List</div>
           <p className="text-xs text-ias-gray-500 mt-1">Items below par level</p>
         </Link>
         {(isAdmin || isPurchaser) && (
@@ -295,7 +299,7 @@ export default function DashboardPage() {
             href="/admin/inventory/par-levels"
             className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold transition-colors"
           >
-            <div className="text-lg font-semibold text-ias-charcoal">Manage Par Levels</div>
+            <div className="font-semibold text-ias-charcoal">Manage Par Levels</div>
             <p className="text-xs text-ias-gray-500 mt-1">Configure stock thresholds</p>
           </Link>
         )}
@@ -303,7 +307,7 @@ export default function DashboardPage() {
           href="/catalog"
           className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold transition-colors"
         >
-          <div className="text-lg font-semibold text-ias-charcoal">Browse Catalog</div>
+          <div className="font-semibold text-ias-charcoal">Browse Catalog</div>
           <p className="text-xs text-ias-gray-500 mt-1">View all products and pricing</p>
         </Link>
       </div>
@@ -311,9 +315,9 @@ export default function DashboardPage() {
       {/* Recent Orders (compact, secondary) */}
       {data?.myOrders && data.myOrders.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
-          <div className="p-4 border-b border-ias-gray-200 flex items-center justify-between">
+          <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
             <h2 className="font-semibold text-ias-charcoal text-sm">Recent Orders</h2>
-            <Link href="/orders" className="text-xs text-ias-blue hover:underline">
+            <Link href="/orders" className="text-xs text-ias-gray-500 hover:text-ias-charcoal font-medium">
               View All
             </Link>
           </div>
@@ -322,17 +326,15 @@ export default function DashboardPage() {
               <Link
                 key={order.id}
                 href={`/orders/${order.id}`}
-                className="flex items-center justify-between p-3 hover:bg-ias-gray-50 transition-colors"
+                className="flex items-center justify-between px-4 py-3 hover:bg-ias-gray-50 transition-colors"
               >
                 <div>
                   <div className="font-medium text-xs text-ias-charcoal">{order.orderNumber}</div>
                   <div className="text-xs text-ias-gray-400">{order.vendor.name}</div>
                 </div>
-                <div className="text-right">
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                    {statusLabels[order.status]}
-                  </span>
-                </div>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                  {statusLabels[order.status]}
+                </span>
               </Link>
             ))}
           </div>

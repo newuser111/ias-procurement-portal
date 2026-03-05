@@ -193,15 +193,28 @@ export default function InventoryCountPage() {
           <h1 className="text-2xl font-bold text-ias-charcoal">Inventory Count</h1>
           <p className="text-ias-gray-500 text-sm mt-1">Select a location to begin counting</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 divide-y divide-ias-gray-100">
           {locations.map((loc) => (
             <button
               key={loc.id}
               onClick={() => setLocationId(loc.id)}
-              className="bg-white rounded-xl p-4 shadow-sm border border-ias-gray-200 hover:border-ias-gold hover:shadow-md transition-all text-left"
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-ias-gray-50 transition-colors text-left"
             >
-              <div className="font-semibold text-ias-charcoal">{loc.name}</div>
-              <div className="text-xs text-ias-gray-400 font-mono mt-1">{loc.code}</div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-ias-gray-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-ias-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-medium text-sm text-ias-charcoal">{loc.name}</div>
+                  <div className="text-xs text-ias-gray-400 font-mono">{loc.code}</div>
+                </div>
+              </div>
+              <svg className="w-4 h-4 text-ias-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           ))}
         </div>
