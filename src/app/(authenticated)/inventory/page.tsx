@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -89,6 +89,14 @@ type TabKey = "stock" | "reorder" | "trends" | "history";
 // ── Component ──────────────────────────────────────────
 
 export default function InventoryPage() {
+  return (
+    <Suspense fallback={<div className="text-center text-ias-gray-400 py-12">Loading...</div>}>
+      <InventoryPageContent />
+    </Suspense>
+  );
+}
+
+function InventoryPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as TabKey) || "stock";
