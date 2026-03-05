@@ -296,7 +296,7 @@ function InventoryPageContent() {
         <>
           {/* Reorder Alerts */}
           {belowPar.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200">
+            <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
               <div className="p-4 border-b border-ias-gray-100 flex items-center justify-between">
                 <h2 className="font-semibold text-ias-charcoal flex items-center gap-2 text-sm">
                   <span className="w-2 h-2 rounded-full bg-red-400" />
@@ -330,8 +330,8 @@ function InventoryPageContent() {
               </div>
               {belowPar.length > 5 && (
                 <button
-                  onClick={() => setStatusFilter("LOW")}
-                  className="block w-full text-xs text-ias-gray-500 text-center py-3 border-t border-ias-gray-100 hover:text-ias-charcoal"
+                  onClick={() => { setStatusFilter(""); window.scrollTo({ top: document.getElementById("stock-table")?.offsetTop ?? 600, behavior: "smooth" }); }}
+                  className="block w-full text-xs text-ias-gray-500 text-center py-4 border-t border-ias-gray-100 hover:text-ias-charcoal cursor-pointer"
                 >
                   + {belowPar.length - 5} more
                 </button>
@@ -391,7 +391,7 @@ function InventoryPageContent() {
           {loading ? (
             <div className="text-center text-ias-gray-400 py-12">Loading...</div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
+            <div id="stock-table" className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-ias-gray-50 border-b border-ias-gray-200">
