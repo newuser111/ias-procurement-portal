@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +27,7 @@ interface CountEntry {
   productId: string;
   quantity: string;
   notes: string;
+  showNotes: boolean;
 }
 
 export default function InventoryCountPage() {
@@ -40,20 +41,20 @@ export default function InventoryCountPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [counts, setCounts] = useState<Record<string, CountEntry>>({});
   const [sessionNotes, setSessionNotes] = useState("");
+  const [showSessionNotes, setShowSessionNotes] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [search, setSearch] = useState("");
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const role = session?.user?.role;
   const isAdminOrPurchaser = role === "ADMIN" || role === "PURCHASER";
 
-  // Fetch par levels when location changes
   useEffect(() => {
     if (!locationId) {
-      // On first load, fetch to get locations list
       fetch("/api/inventory/par-levels")
         .then((r) => r.json())
         .then((data) => {
           if (data.locations) setLocations(data.locations);
-          // If user is location-bound, auto-select their location
           if (!isAdminOrPurchaser && session?.user?.locationId) {
             setLocationId(session.user.locationId);
           }
@@ -68,10 +69,9 @@ export default function InventoryCountPage() {
       .then((data) => {
         setParLevels(data.parLevels || []);
         if (data.locations) setLocations(data.locations);
-        // Initialize count entries
         const initial: Record<string, CountEntry> = {};
         for (const pl of data.parLevels || []) {
-          initial[pl.productId] = { productId: pl.productId, quantity: "", notes: "" };
+          initial[pl.productId] = { productId: pl.productId, quantity: "", notes: "", showNotes: false };
         }
         setCounts(initial);
       })
@@ -82,16 +82,26 @@ export default function InventoryCountPage() {
     new Set(parLevels.map((pl) => pl.product.category?.name).filter(Boolean))
   ).sort() as string[];
 
-  const filteredProducts = categoryFilter
-    ? parLevels.filter((pl) => pl.product.category?.name === categoryFilter)
-    : parLevels;
+  const filteredProducts = parLevels
+    .filter((pl) => !categoryFilter || pl.product.category?.name === categoryFilter)
+    .filter((pl) => {
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (
+        pl.product.name.toLowerCase().includes(s) ||
+        pl.product.vendor.name.toLowerCase().includes(s) ||
+        (pl.product.sku && pl.product.sku.toLowerCase().includes(s))
+      );
+    });
 
   const filledCount = Object.values(counts).filter((c) => c.quantity !== "").length;
+  const totalCount = parLevels.length;
   const belowParCount = Object.values(counts).filter((c) => {
     if (c.quantity === "") return false;
     const pl = parLevels.find((p) => p.productId === c.productId);
     return pl && parseInt(c.quantity) < pl.minLevel;
   }).length;
+  const progressPct = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
 
   const handleQuantityChange = (productId: string, value: string) => {
     setCounts((prev) => ({
@@ -104,6 +114,13 @@ export default function InventoryCountPage() {
     setCounts((prev) => ({
       ...prev,
       [productId]: { ...prev[productId], notes: value },
+    }));
+  };
+
+  const toggleNotes = (productId: string) => {
+    setCounts((prev) => ({
+      ...prev,
+      [productId]: { ...prev[productId], showNotes: !prev[productId]?.showNotes },
     }));
   };
 
@@ -139,6 +156,7 @@ export default function InventoryCountPage() {
     }
   };
 
+  // Success screen
   if (success) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -196,167 +214,233 @@ export default function InventoryCountPage() {
   const selectedLocation = locations.find((l) => l.id === locationId);
 
   return (
-    <div className="space-y-6 pb-24">
-      <Link href="/inventory" className="inline-flex items-center text-sm text-ias-gray-500 hover:text-ias-charcoal transition-colors">
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to Inventory
-      </Link>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-ias-charcoal">Inventory Count</h1>
-          <p className="text-ias-gray-500 text-sm mt-1">
-            {selectedLocation?.name} — {parLevels.length} products to count
-          </p>
-        </div>
+    <div className="space-y-4 pb-28">
+      {/* Top bar */}
+      <div className="flex items-center justify-between">
+        <Link href="/inventory" className="inline-flex items-center text-sm text-ias-gray-500 hover:text-ias-charcoal transition-colors">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </Link>
         {isAdminOrPurchaser && (
           <button
-            onClick={() => { setLocationId(""); setCounts({}); }}
-            className="text-sm text-ias-gray-500 hover:text-ias-charcoal"
+            onClick={() => { setLocationId(""); setCounts({}); setSearch(""); setCategoryFilter(""); }}
+            className="text-xs text-ias-gray-500 hover:text-ias-charcoal transition-colors"
           >
             Change Location
           </button>
         )}
       </div>
 
-      {/* Category Tabs */}
-      {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setCategoryFilter("")}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              !categoryFilter
-                ? "bg-ias-charcoal text-white"
-                : "bg-ias-gray-100 text-ias-gray-600 hover:bg-ias-gray-200"
-            }`}
+      {/* Header with progress */}
+      <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-lg font-bold text-ias-charcoal">{selectedLocation?.name}</h1>
+            <p className="text-xs text-ias-gray-400">{parLevels.length} products to count</p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-ias-charcoal">{progressPct}%</div>
+            <div className="text-xs text-ias-gray-400">{filledCount}/{totalCount}</div>
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="w-full bg-ias-gray-100 rounded-full h-2">
+          <div
+            className="h-2 rounded-full transition-all duration-300"
+            style={{
+              width: `${progressPct}%`,
+              backgroundColor: progressPct === 100 ? "#22c55e" : "#ddc67b",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Search + Filter */}
+      <div className="flex gap-2">
+        <div className="flex-1 relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ias-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            className="w-full pl-9 pr-3 py-2.5 bg-white border border-ias-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold"
+          />
+        </div>
+        {categories.length > 1 && (
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-2.5 bg-white border border-ias-gray-200 rounded-xl text-sm text-ias-gray-600 focus:outline-none focus:ring-2 focus:ring-ias-gold"
           >
-            All
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat === categoryFilter ? "" : cat)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                categoryFilter === cat
-                  ? "bg-ias-charcoal text-white"
-                  : "bg-ias-gray-100 text-ias-gray-600 hover:bg-ias-gray-200"
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {/* Product List */}
+      <div className="space-y-2">
+        {filteredProducts.map((pl) => {
+          const entry = counts[pl.productId];
+          const qty = entry?.quantity !== "" ? parseInt(entry?.quantity || "0") : null;
+          const isBelowPar = qty !== null && qty < pl.minLevel;
+          const isCounted = entry?.quantity !== "";
+
+          return (
+            <div
+              key={pl.productId}
+              className={`bg-white rounded-xl border transition-all ${
+                isBelowPar
+                  ? "border-red-200 shadow-sm"
+                  : isCounted
+                    ? "border-green-200 shadow-sm"
+                    : "border-ias-gray-200"
               }`}
             >
-              {cat}
-            </button>
-          ))}
+              <div className="flex items-center gap-3 p-3">
+                {/* Status indicator */}
+                <div className={`w-1.5 self-stretch rounded-full flex-shrink-0 ${
+                  isBelowPar ? "bg-red-400" : isCounted ? "bg-green-400" : "bg-ias-gray-200"
+                }`} />
+
+                {/* Product info */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm text-ias-charcoal truncate">{pl.product.name}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-ias-gray-400">{pl.product.vendor.name}</span>
+                    <span className="text-ias-gray-300">·</span>
+                    <span className="text-xs text-ias-gray-400">{pl.product.unitOfMeasure}</span>
+                    {pl.product.sku && (
+                      <>
+                        <span className="text-ias-gray-300">·</span>
+                        <span className="text-xs text-ias-gray-400 font-mono">{pl.product.sku}</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-ias-gray-400">
+                      Par: <span className="font-medium text-ias-gray-600">{pl.minLevel}</span>
+                      {pl.maxLevel !== null && <span> – {pl.maxLevel}</span>}
+                    </span>
+                    <span className="text-xs text-ias-gray-400">
+                      Previous: <span className="font-medium text-ias-gray-600">{pl.currentQty}</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Count input */}
+                <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <input
+                    ref={(el) => { inputRefs.current[pl.productId] = el; }}
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    value={entry?.quantity || ""}
+                    onChange={(e) => handleQuantityChange(pl.productId, e.target.value)}
+                    placeholder="—"
+                    className={`w-16 h-10 text-center text-base font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-ias-gold transition-colors ${
+                      isBelowPar
+                        ? "border-red-300 bg-red-50 text-red-700"
+                        : isCounted
+                          ? "border-green-300 bg-green-50 text-green-700"
+                          : "border-ias-gray-300 bg-white text-ias-charcoal"
+                    }`}
+                  />
+                  {/* Notes toggle */}
+                  <button
+                    onClick={() => toggleNotes(pl.productId)}
+                    className={`text-xs transition-colors ${
+                      entry?.notes ? "text-ias-gold font-medium" : "text-ias-gray-400 hover:text-ias-gray-600"
+                    }`}
+                  >
+                    {entry?.showNotes ? "hide" : entry?.notes ? "note ✎" : "+ note"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Expandable notes */}
+              {entry?.showNotes && (
+                <div className="px-3 pb-3 pl-7">
+                  <input
+                    type="text"
+                    value={entry?.notes || ""}
+                    onChange={(e) => handleNotesChange(pl.productId, e.target.value)}
+                    placeholder="Add a note for this item..."
+                    className="w-full px-3 py-2 border border-ias-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ias-gold bg-ias-gray-50"
+                    autoFocus
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="bg-white rounded-xl border border-ias-gray-200 p-8 text-center text-ias-gray-400 text-sm">
+          {search ? "No products match your search" : "No products with par levels at this location"}
         </div>
       )}
 
-      {/* Count Table */}
+      {/* Session Notes Toggle */}
       <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-ias-gray-50 border-b border-ias-gray-200">
-              <th className="text-left px-5 py-3 font-medium text-ias-gray-600">Product</th>
-              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden md:table-cell">Vendor</th>
-              <th className="text-center px-5 py-3 font-medium text-ias-gray-600">Par Min</th>
-              <th className="text-center px-5 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Par Max</th>
-              <th className="text-center px-5 py-3 font-medium text-ias-gray-600 hidden sm:table-cell">Previous</th>
-              <th className="text-center px-5 py-3 font-medium text-ias-gray-600 w-28">Count</th>
-              <th className="text-left px-5 py-3 font-medium text-ias-gray-600 hidden lg:table-cell w-40">Notes</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-ias-gray-100">
-            {filteredProducts.map((pl) => {
-              const entry = counts[pl.productId];
-              const qty = entry?.quantity !== "" ? parseInt(entry?.quantity || "0") : null;
-              const isBelowPar = qty !== null && qty < pl.minLevel;
-
-              return (
-                <tr key={pl.productId} className="hover:bg-ias-gray-50">
-                  <td className="px-5 py-3">
-                    <div className="font-medium text-ias-charcoal">{pl.product.name}</div>
-                    <div className="text-xs text-ias-gray-400">
-                      {pl.product.unitOfMeasure}
-                      {pl.product.sku && ` · SKU: ${pl.product.sku}`}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-ias-gray-600 hidden md:table-cell">{pl.product.vendor.name}</td>
-                  <td className="px-5 py-3 text-center text-ias-gray-600">{pl.minLevel}</td>
-                  <td className="px-5 py-3 text-center text-ias-gray-500 hidden sm:table-cell">{pl.maxLevel ?? "—"}</td>
-                  <td className="px-5 py-3 text-center text-ias-gray-500 hidden sm:table-cell">{pl.currentQty}</td>
-                  <td className="px-5 py-3 text-center">
-                    <input
-                      type="number"
-                      min="0"
-                      value={entry?.quantity || ""}
-                      onChange={(e) => handleQuantityChange(pl.productId, e.target.value)}
-                      placeholder={String(pl.currentQty)}
-                      className={`w-20 text-center px-2 py-1.5 border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ias-gold ${
-                        isBelowPar
-                          ? "border-red-300 bg-red-50 text-red-700"
-                          : "border-ias-gray-300"
-                      }`}
-                    />
-                  </td>
-                  <td className="px-5 py-3 hidden lg:table-cell">
-                    <input
-                      type="text"
-                      value={entry?.notes || ""}
-                      onChange={(e) => handleNotesChange(pl.productId, e.target.value)}
-                      placeholder="Optional"
-                      className="w-full px-2 py-1.5 border border-ias-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ias-gold"
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {filteredProducts.length === 0 && (
-          <div className="p-8 text-center text-ias-gray-400 text-sm">
-            No products with par levels at this location
+        <button
+          onClick={() => setShowSessionNotes(!showSessionNotes)}
+          className="w-full flex items-center justify-between p-3 text-sm text-ias-gray-600 hover:bg-ias-gray-50 transition-colors"
+        >
+          <span className="font-medium">Session Notes</span>
+          <svg
+            className={`w-4 h-4 transition-transform ${showSessionNotes ? "rotate-180" : ""}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {showSessionNotes && (
+          <div className="px-3 pb-3">
+            <textarea
+              value={sessionNotes}
+              onChange={(e) => setSessionNotes(e.target.value)}
+              placeholder="General notes about this count session..."
+              className="w-full px-3 py-2 border border-ias-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold resize-none bg-ias-gray-50"
+              rows={2}
+            />
           </div>
         )}
       </div>
 
-      {/* Session Notes */}
-      <div className="bg-white rounded-xl shadow-sm border border-ias-gray-200 p-4">
-        <label className="block text-sm font-medium text-ias-gray-600 mb-2">
-          Count Session Notes (optional)
-        </label>
-        <textarea
-          value={sessionNotes}
-          onChange={(e) => setSessionNotes(e.target.value)}
-          placeholder="Any notes about this count session..."
-          className="w-full px-3 py-2 border border-ias-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ias-gold resize-none"
-          rows={2}
-        />
-      </div>
-
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-ias-gray-200 px-4 py-3 z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-ias-gray-200 px-4 py-3 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-sm text-ias-gray-600">
-            <span className="font-semibold text-ias-charcoal">{filledCount}</span> products counted
+          <div className="text-sm">
+            <span className="font-semibold text-ias-charcoal">{filledCount}</span>
+            <span className="text-ias-gray-500">/{totalCount} counted</span>
             {belowParCount > 0 && (
-              <span className="ml-3 text-red-600">
-                <span className="font-semibold">{belowParCount}</span> below par
+              <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                {belowParCount} below par
               </span>
             )}
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => router.push("/inventory")}
-              className="px-4 py-2 text-sm text-ias-gray-600 hover:text-ias-charcoal"
+              className="px-4 py-2 text-sm text-ias-gray-500 hover:text-ias-charcoal"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={filledCount === 0 || submitting}
-              className="px-6 py-2 bg-ias-gold text-ias-charcoal rounded-lg text-sm font-semibold hover:bg-ias-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 bg-ias-gold text-ias-charcoal rounded-lg text-sm font-semibold hover:bg-ias-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? "Submitting..." : "Submit Count"}
+              {submitting ? "Submitting..." : `Submit (${filledCount})`}
             </button>
           </div>
         </div>
